@@ -387,10 +387,15 @@ class OBBAnns:
         ann_set_idx = [self.annotation_sets.index(ann_set)
                        for ann_set in ann_set_filter]
 
+
+
+
         def filter_ids(record):
-            return [int(record[idx])
-                    for idx in ann_set_idx
-                    if int(record[idx]) not in self.classes_blacklist_id]
+            return [
+                int(record[idx])
+                for idx in ann_set_idx
+                if record[idx] is not None and int(record[idx]) not in self.classes_blacklist_id
+            ]
 
         selected['cat_id'] = selected['cat_id'].map(filter_ids)
         selected = selected[selected['cat_id'].map(lambda x: len(x)) > 0]
