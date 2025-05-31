@@ -12,3 +12,4 @@ with open(filepath, 'r') as f:
 image_ids = [image['id'] for image in data['images']]
 print("len(image_ids)", len(image_ids))
 imgs, anns = o.get_img_ann_pair(image_ids[:5])
+print(anns[0])
