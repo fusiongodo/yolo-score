@@ -28,6 +28,7 @@ class YOLOv2Heavy(nn.Module):
         self.S, self.A, self.C = c.S, c.A, c.C
 
         self.model = nn.Sequential(
+
             #896x896x3
             _ConvBlock(3, 16, 7, 1, 3),
             nn.MaxPool2d(2, 2),
@@ -63,3 +64,69 @@ class YOLOv2Heavy(nn.Module):
             _ConvBlock(1024, 1024, 3, 1, 1),
             _ConvBlock(1024,  self.A * (5 + self.C), 1, 1, 0 ) #6 anchors
         )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = self.model(x)
+        N, _, S1, S2 = out.shape
+        assert S1 == self.S and S2 == self.S, "Grid mismatch"
+        # reshape to [N, S, S, B*5 + C]
+        out = out.view(N, self.A, 5 + self.C, self.S, self.S) \
+                 .permute(0, 3, 4, 1, 2)
+        return out
+    
+
+
+
+
+
+class YOLOv2Tiny(nn.Module):
+    """YOLO v1 backbone + detection head (fully‑connected)."""
+    def __init__(self): #SxS Anzahl Grid cells, B Anzahl Anchors
+        super().__init__()
+        self.S, self.A, self.C = c.S, c.A, c.C
+
+        self.model = nn.Sequential(
+            #896x896x3
+            _ConvBlock(3, 8, 7, 1, 3),
+            nn.MaxPool2d(2, 2),
+            #448x448x16
+            _ConvBlock(8, 16, 3, 1, 1),
+            nn.MaxPool2d(2, 2),
+            #224x224x32
+            _ConvBlock(16, 24, 1, 1, 0),
+            #224x224x24
+            _ConvBlock(24, 48, 3, 1, 1),
+            #224x224x48
+            _ConvBlock(48, 48, 1, 1, 0),
+            #224x224x48
+            _ConvBlock(48, 96, 3, 1, 1),
+            #224x224x96
+            nn.MaxPool2d(2, 2),
+            #112x112x96
+
+            # usually four times
+            *[nn.Sequential(
+                _ConvBlock(96, 48, 1, 1, 0),
+                _ConvBlock(48, 96, 3, 1, 1)
+            ) for _ in range(1)],
+
+            #112x112x96
+
+            _ConvBlock(96, 96, 1, 1, 0),
+            _ConvBlock(96, 128, 3, 1, 1),
+            #112x112x128
+
+            _ConvBlock(128, 128, 3, 1, 1),
+            _ConvBlock(128,  self.A * (5 + self.C), 1, 1, 0 ) #6 anchors
+        )
+
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = self.model(x)
+        N, _, S1, S2 = out.shape
+        assert S1 == self.S and S2 == self.S, "Grid mismatch"
+        # reshape to [N, S, S, B*5 + C]
+        out = out.view(N, self.A, 5 + self.C, self.S, self.S) \
+                 .permute(0, 3, 4, 1, 2)
+        return out
+

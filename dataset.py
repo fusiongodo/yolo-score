@@ -38,47 +38,37 @@ class ObjectDetectionDataset(Dataset):
         except Exception as e:
             raise RuntimeError(f"Failed to load image {img_path}: {e}")
 
-
+        ### Resize the image and normalize
         image = image.resize((896, 896))
         arr = np.array(image, dtype=np.float32) / 255.0
-        # HWC to CWH 
-        image = torch.from_numpy(arr).permute(2, 1, 0)
+        # HWC to CHW
+        image = torch.from_numpy(arr).permute(2, 0, 1)
 
- 
+        # Create target tensor using config values directly
         target = torch.zeros(
             (config.S, config.S, config.A, 5 + config.C),
             dtype=torch.float32
         )
 
-        # img_id        int32
-        # filename     object
-        # cx            int32
-        # cy            int32
-        # tx          float32
-        # ty          float32
-        # tw          float32
-        # th          float32
-        # class_id      int32
-
+        # Populate target per anchor slot
         for _, row in ann.iterrows():
-            i = int(row['cx'])
-            j = int(row['cy'])
-            # Assign to the first available anchor slot in this cell
+            # row['cx'] is column index, row['cy'] is row index
+            i = int(row['cy'])
+            j = int(row['cx'])
+            # Assign to first free anchor in this cell
             cell_objness = target[i, j, :, 4]
-            # find anchors where objectness == 0
             free_anchors = torch.nonzero(cell_objness == 0).flatten()
             if free_anchors.numel() == 0:
-            # No free anchor slots left for this cell, skip this box
                 continue
             a = int(free_anchors[0].item())
-            # Bounding‐box offsets and scales
+            # Bounding‑box offsets and scales
             target[i, j, a, 0] = row['tx']
             target[i, j, a, 1] = row['ty']
             target[i, j, a, 2] = row['tw']
             target[i, j, a, 3] = row['th']
             # Objectness
             target[i, j, a, 4] = 1.0
-            # One‐hot class
+            # One‑hot class
             cls = int(row['class_id'])
             if cls < config.C:
                 target[i, j, a, 5 + cls] = 1.0
