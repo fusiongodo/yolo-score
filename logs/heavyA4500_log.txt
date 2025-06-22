@@ -1,0 +1,2 @@
+# step total l_xy l_wh l_obj l_noobj l_cls
+000170 total:1573.9405 l_xy:294.8281 l_wh:131.3484 l_obj:54.5585 l_noobj:306.0336 l_cls:787.1719
