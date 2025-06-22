@@ -10,5 +10,4 @@ ds2_dense/images/
 *.code-workspace
 
 # PyTorch checkpoints
-*.pth
 *.pt
