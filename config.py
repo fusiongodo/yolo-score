@@ -1,0 +1,22 @@
+# config.py
+import os
+import numpy as np
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+img_dir  = os.path.join(BASE_DIR, "ds2_dense", "ds2_dense", "images")
+filepath = os.path.join(BASE_DIR, "ds2_dense", "ds2_dense", "deepscores_train.json")
+logdir   = os.path.join(BASE_DIR, "logs")
+
+S = 112
+A = 6
+C = 136
+
+ANCHORS = np.array([
+    [0.02080085, 0.01517667],
+    [0.02080085, 0.01517667],
+    [0.02080085, 0.01517667],
+    [0.02080085, 0.01517667],
+    [0.02080085, 0.01517667],
+    [0.02080085, 0.01517667],
+])
