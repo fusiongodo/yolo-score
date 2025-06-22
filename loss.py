@@ -5,7 +5,6 @@ import config
 
 
 
-
 def _decode_boxes(tx, ty, tw, th):
     """Convert (tx,ty,tw,th) in cell‑space to (tx,ty,w,h)."""
     anchors = torch.tensor(config.ANCHORS, device=tx.device, dtype=tx.dtype)  # (A,2)
@@ -14,10 +13,6 @@ def _decode_boxes(tx, ty, tw, th):
     w = torch.exp(tw) * aw
     h = torch.exp(th) * ah
     return tx, ty, w, h
-
-
-
-
 
 
 def _bbox_iou(box1, box2):
@@ -42,13 +37,16 @@ def _bbox_iou(box1, box2):
     union = area1 + area2 - inter_area + 1e-9
     return inter_area / union
 
-
-
-
-
+# ------------------------------------------------------------------
+# Loss
+# ------------------------------------------------------------------
 
 class YOLOv2Loss(nn.Module):
-    """Composite YOLO‑v2 loss returning total and breakdown dict."""
+    """Composite YOLO‑v2 loss returning total and breakdown dict.
+
+    Matching step is vectorised over all ground‑truth boxes to avoid the
+    quadruple‑nested Python loop.
+    """
 
     def __init__(self, l_xy=5.0, l_wh=5.0, l_obj=1.0, l_noobj=0.5, l_cls=1.0):
         super().__init__()
@@ -62,54 +60,74 @@ class YOLOv2Loss(nn.Module):
     def forward(self, pred, target):
         device = pred.device
         N, S, _, A, _ = pred.shape
-        # Split prediction tensor --------------------------------------
-        pred_tx, pred_ty, pred_tw, pred_th, pred_to = torch.split(pred[..., :5], 1, dim=-1)
-        pred_tx, pred_ty = pred_tx.squeeze(-1), pred_ty.squeeze(-1)
-        pred_tw, pred_th = pred_tw.squeeze(-1), pred_th.squeeze(-1)
-        pred_to = pred_to.squeeze(-1)
-        pred_cls = pred[..., 5:]
-        # Split target tensor ------------------------------------------
-        tgt_tx, tgt_ty, tgt_tw, tgt_th, tgt_to = torch.split(target[..., :5], 1, dim=-1)
-        tgt_tx, tgt_ty = tgt_tx.squeeze(-1), tgt_ty.squeeze(-1)
-        tgt_tw, tgt_th = tgt_tw.squeeze(-1), tgt_th.squeeze(-1)
-        tgt_to = tgt_to.squeeze(-1)
-        tgt_cls = target[..., 5:]
-        # Masks (initial) ----------------------------------------------
-        obj_mask = tgt_to > 0.5
-        # Decode to cell‑space for IoU matching -------------------------
-        p_tx_s, p_ty_s, p_w, p_h = _decode_boxes(torch.sigmoid(pred_tx), torch.sigmoid(pred_ty), pred_tw, pred_th)
-        g_tx_s, g_ty_s, g_w, g_h = _decode_boxes(tgt_tx, tgt_ty, tgt_tw, tgt_th)
-        # Greedy matching ----------------------------------------------
-        aligned_target = torch.zeros_like(target)
-        anchor_taken = torch.zeros((N, S, S, A), dtype=torch.bool, device=device)
-        for n in range(N):
-            for i in range(S):
-                for j in range(S):
-                    for a_gt in range(A):
-                        if not obj_mask[n, i, j, a_gt]:
-                            continue
-                        gt_box = torch.stack([g_tx_s[n, i, j, a_gt], g_ty_s[n, i, j, a_gt], g_w[n, i, j, a_gt], g_h[n, i, j, a_gt]])
-                        pred_boxes = torch.stack([p_tx_s[n, i, j, :], p_ty_s[n, i, j, :], p_w[n, i, j, :], p_h[n, i, j, :]], dim=-1)
-                        ious = _bbox_iou(pred_boxes, gt_box.unsqueeze(0))
-                        ious[anchor_taken[n, i, j]] = -1
-                        best_a = torch.argmax(ious)
-                        anchor_taken[n, i, j, best_a] = True
-                        aligned_target[n, i, j, best_a] = target[n, i, j, a_gt]
-        tgt_to_aligned = aligned_target[..., 4]
-        obj_mask = tgt_to_aligned > 0.5
+
+        # ---------------- Split prediction & target tensors ------------
+        def _split(t):
+            tx, ty, tw, th, to = torch.split(t[..., :5], 1, dim=-1)
+            return tx.squeeze(-1), ty.squeeze(-1), tw.squeeze(-1), th.squeeze(-1), to.squeeze(-1), t[..., 5:]
+
+        p_tx, p_ty, p_tw, p_th, p_to, p_cls = _split(pred)
+        g_tx, g_ty, g_tw, g_th, g_to, g_cls = _split(target)
+
+        # Mask of GT objects
+        obj_mask = g_to > 0.5  # (N,S,S,A)
+
+        # ---------------- Decode to box params for IoU -----------------
+        p_tx_s, p_ty_s, p_w, p_h = _decode_boxes(torch.sigmoid(p_tx), torch.sigmoid(p_ty), p_tw, p_th)
+        g_tx_s, g_ty_s, g_w, g_h = _decode_boxes(g_tx, g_ty, g_tw, g_th)
+
+        pred_boxes = torch.stack((p_tx_s, p_ty_s, p_w, p_h), dim=-1)   # (N,S,S,A,4)
+        gt_boxes   = torch.stack((g_tx_s, g_ty_s, g_w, g_h), dim=-1)   # (N,S,S,A,4)
+
+        # ---------------- Vectorised greedy matching -------------------
+        # Flatten grid for easier indexing
+        P = pred_boxes.view(N, -1, A, 4)           # (N, S², A, 4)
+        G = gt_boxes.view(N, -1, A, 4)
+        mask = obj_mask.view(N, -1, A)             # (N, S², A)
+
+                # IoU between each GT box and the A predictions in its cell
+        ious = _bbox_iou(P.unsqueeze(3), G.unsqueeze(2))  # (N,S²,A_pred,A_gt)
+        # Mask out cells where there is no GT (objectness==0)
+        mask_exp = mask.unsqueeze(2).expand_as(ious)      # (N,S²,A_pred,A_gt)
+        ious = ious.masked_fill(~mask_exp, -1)
+
+        # Greedy pick best pred anchor per GT box
+        _, best_pred_idx = ious.max(dim=2)  # over A_pred → (N,S²,A_gt) = ious.max(dim=2)  # over A_pred → (N,S²,A_gt)
+
+        # Build aligned_target by scattering
+        aligned_target = torch.zeros_like(target.view(N, -1, A, 5 + config.C))
+        anchor_taken = torch.zeros((N, S * S, A), dtype=torch.bool, device=device)
+
+        gt_indices = mask.nonzero(as_tuple=False)  # (M,3) with dims (n, cell, a_gt)
+        for n, cell, a_gt in gt_indices:
+            a_pred = best_pred_idx[n, cell, a_gt].item()
+            if anchor_taken[n, cell, a_pred]:
+                continue  # this anchor already assigned in this cell
+            anchor_taken[n, cell, a_pred] = True
+            aligned_target[n, cell, a_pred] = target.view(N, -1, A, 5 + config.C)[n, cell, a_gt]
+
+        aligned_target = aligned_target.view_as(target)
+        obj_mask = aligned_target[..., 4] > 0.5
         noobj_mask = ~obj_mask
-        # Loss components ---------------------------------------------
-        loss_xy = self.l_xy * (F.mse_loss(torch.sigmoid(pred_tx)[obj_mask], aligned_target[..., 0][obj_mask], reduction='sum') +
-                               F.mse_loss(torch.sigmoid(pred_ty)[obj_mask], aligned_target[..., 1][obj_mask], reduction='sum'))
-        loss_wh = self.l_wh * (F.mse_loss(pred_tw[obj_mask], aligned_target[..., 2][obj_mask], reduction='sum') +
-                               F.mse_loss(pred_th[obj_mask], aligned_target[..., 3][obj_mask], reduction='sum'))
-        loss_obj = self.l_obj * F.binary_cross_entropy_with_logits(pred_to[obj_mask], torch.ones_like(pred_to[obj_mask]), reduction='sum')
-        loss_noobj = self.l_noobj * F.binary_cross_entropy_with_logits(pred_to[noobj_mask], torch.zeros_like(pred_to[noobj_mask]), reduction='sum')
+
+        # ------------------- Loss components ---------------------------
+        loss_xy = self.l_xy * (
+            F.mse_loss(torch.sigmoid(p_tx)[obj_mask], aligned_target[..., 0][obj_mask], reduction='sum') +
+            F.mse_loss(torch.sigmoid(p_ty)[obj_mask], aligned_target[..., 1][obj_mask], reduction='sum'))
+
+        loss_wh = self.l_wh * (
+            F.mse_loss(p_tw[obj_mask], aligned_target[..., 2][obj_mask], reduction='sum') +
+            F.mse_loss(p_th[obj_mask], aligned_target[..., 3][obj_mask], reduction='sum'))
+
+        loss_obj = self.l_obj * F.binary_cross_entropy_with_logits(p_to[obj_mask], torch.ones_like(p_to[obj_mask]), reduction='sum')
+        loss_noobj = self.l_noobj * F.binary_cross_entropy_with_logits(p_to[noobj_mask], torch.zeros_like(p_to[noobj_mask]), reduction='sum')
+
         if obj_mask.any():
             tgt_labels = torch.argmax(aligned_target[..., 5:][obj_mask], dim=-1)
-            loss_cls = self.l_cls * F.cross_entropy(pred_cls[obj_mask], tgt_labels, reduction='sum')
+            loss_cls = self.l_cls * F.cross_entropy(p_cls[obj_mask], tgt_labels, reduction='sum')
         else:
             loss_cls = pred.sum() * 0
+
         total = (loss_xy + loss_wh + loss_obj + loss_noobj + loss_cls) / N
         breakdown = {
             'total': total.detach(),

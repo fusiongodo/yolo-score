@@ -3,6 +3,7 @@ import os
 import json
 import pandas as pd
 import config
+import torch.nn as nn
 import numpy as np
 
 import torch
@@ -123,3 +124,30 @@ def saveModel(checkpoint_path,model, optimizer):
         'opt':   optimizer.state_dict()
     }, path)
     print(f"Checkpoint {checkpoint_path} saved.")
+
+
+
+def saveModel(filename: str, model: nn.Module):
+    """Save model weights to ./model_dumps/<filename>.pth"""
+    dump_dir = 'model_dumps'
+    os.makedirs(dump_dir, exist_ok=True)
+    path = os.path.join(dump_dir, f"{filename}.pth" if not filename.endswith('.pth') else filename)
+    torch.save(model.state_dict(), path)
+    if hasattr(model, 'device'):
+        loc = getattr(model, 'device')
+    else:
+        loc = next(model.parameters()).device
+    print(f"[saveModel] Saved weights to {path} (device={loc})")
+
+
+def loadModel(filename: str, model: nn.Module, device: str = 'cpu') -> nn.Module:
+    """Load weights into `model` if checkpoint exists, else return unchanged model."""
+    dump_dir = 'model_dumps'
+    path = os.path.join(dump_dir, f"{filename}.pth" if not filename.endswith('.pth') else filename)
+    if os.path.exists(path):
+        model.load_state_dict(torch.load(path, map_location=device))
+        print(f"[loadMode] Loaded weights from {path}")
+    else:
+        print(f"[loadMode] No checkpoint found at {path} — starting fresh")
+    return model
+
