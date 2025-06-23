@@ -49,47 +49,34 @@ class Trainer:
             f.write('# step total l_xy l_wh l_obj l_noobj l_cls mAP\n')
 
     # ------------------------------------------------------------------
-    def _log(self, step_global: int, metrics: dict):
-        msg = f"{step_global:06d} " + ' '.join([f"{k}:{v:.4f}" for k, v in metrics.items()])
-        with open(self.logfile, 'a') as f:
-            f.write(msg + "\n")
-        if self.verbose:
-            print(msg)
-
-    # ------------------------------------------------------------------
-    def run(self):
-        steps_per_epoch = len(self.dataloader)
-        log_interval = max(1, steps_per_epoch // 2)
-        global_step = 0
-        for epoch in range(1, self.epochs + 1):
-            running = {k: 0.0 for k in ['total', 'l_xy', 'l_wh', 'l_obj', 'l_noobj', 'l_cls']}
-            epoch_totals = {k: 0.0 for k in running}
-            since_last = 0
-            for step, (imgs, targets) in enumerate(self.dataloader, 1):
-                imgs, targets = imgs.to(self.device), targets.to(self.device)
-                self.opt.zero_grad()
-                loss, metrics = self.loss_fn(self.model(imgs), targets)
-                loss.backward(); self.opt.step()
-                for k in running:
-                    running[k] += metrics[k].item(); epoch_totals[k] += metrics[k].item()
-                since_last += 1; global_step += 1
-                if step % log_interval == 0 or step == steps_per_epoch:
-                    avg = {k: running[k] / since_last for k in running}
-                    self._log(global_step, avg)
-                    running = {k: 0.0 for k in running}; since_last = 0
-            # epoch‑avg line
-            avg_epoch = {k: epoch_totals[k] / steps_per_epoch for k in epoch_totals}
-            epoch_msg = f'Epoch {epoch} avg ' + ' '.join([f"{k}:{v:.4f}" for k, v in avg_epoch.items()])
+    def _log_epoch(self, epoch_msg: str):
             with open(self.logfile, 'a') as f:
                 f.write(epoch_msg + "\n")
             if self.verbose:
                 print(epoch_msg)
-            # -------- evaluation every 2 epochs --------
-            if epoch % 1 == 0:
-                mAP = l.average_precision(self.model, self.eval_dataset, device=self.device, max_batches=48)
-                self._log(global_step, {'mAP': mAP})
-                print(f"mAP: {mAP}")
-            # -------- checkpointing --------
+
+    # ------------------------------------------------------------------
+    def run(self):
+        import time
+        steps_per_epoch = len(self.dataloader)
+        for epoch in range(1, self.epochs + 1):
+            epoch_totals = {k: 0.0 for k in ['total','l_xy','l_wh','l_obj','l_noobj','l_cls']}
+            for imgs, targets in self.dataloader:
+                imgs, targets = imgs.to(self.device), targets.to(self.device)
+                self.opt.zero_grad()
+                loss, metrics = self.loss_fn(self.model(imgs), targets)
+                loss.backward(); self.opt.step()
+                for k in epoch_totals:
+                    epoch_totals[k] += metrics[k].item()
+            # ----- mAP on eval subset -----
+            mAP = l.average_precision(self.model, self.eval_dataset, device=self.device, max_batches=48)
+            mAP_iou03 = l.average_precision(self.model, self.eval_dataset, device=self.device, iou_thresh=0.3, score_thresh=0.5, max_batches=48)
+            mAP_obj03 = l.average_precision(self.model, self.eval_dataset, device=self.device, iou_thresh=0.5, score_thresh=0.3, max_batches=48)
+            # epoch averages
+            avg = {k: epoch_totals[k] / steps_per_epoch for k in epoch_totals}
+            epoch_line = (f"Epoch {epoch} mAP:{mAP:e}, mAP_iou03: {mAP_iou03}, mAP_obj03: {mAP_obj03}" + ' '.join([f"{k}:{avg[k]:.4f}" for k in ['total','l_xy','l_wh','l_obj','l_noobj','l_cls']]))
+            self._log_epoch(epoch_line)
+            # checkpointing
             if epoch % self.save_interval == 0:
                 ts = time.strftime('%d%m%H%M')
                 ckpt_name = f"{self.modelname}_ep{epoch}_{ts}"

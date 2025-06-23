@@ -1,0 +1,14 @@
+# step total l_xy l_wh l_obj l_noobj l_cls mAP
+Epoch 1 mAP:0.000000e+00total:5917.5761 l_xy:378.3997 l_wh:705.8110 l_obj:151.7127 l_noobj:3676.2502 l_cls:1005.4026
+Epoch 2 mAP:0.000000e+00total:3327.4556 l_xy:354.2031 l_wh:779.9446 l_obj:325.5985 l_noobj:690.1790 l_cls:1177.5304
+Epoch 3 mAP:0.000000e+00total:1779.0651 l_xy:255.9586 l_wh:490.8396 l_obj:181.4437 l_noobj:183.4365 l_cls:667.3867
+Epoch 4 mAP:0.000000e+00total:1481.1478 l_xy:225.3695 l_wh:414.9594 l_obj:158.9118 l_noobj:155.4753 l_cls:526.4318
+Epoch 5 mAP:4.897064e-06total:1270.2865 l_xy:204.4870 l_wh:369.1611 l_obj:143.4455 l_noobj:138.4354 l_cls:414.7576
+Epoch 6 mAP:1.403568e-05total:1123.4376 l_xy:189.1994 l_wh:337.1056 l_obj:129.2484 l_noobj:126.6276 l_cls:341.2567
+Epoch 7 mAP:2.408826e-05total:1014.9960 l_xy:175.8130 l_wh:311.0989 l_obj:119.1730 l_noobj:116.6114 l_cls:292.2996
+Epoch 8 mAP:1.328309e-04total:945.3315 l_xy:167.4025 l_wh:293.0108 l_obj:113.9813 l_noobj:109.7277 l_cls:261.2091
+Epoch 9 mAP:2.475738e-05total:866.1766 l_xy:157.0127 l_wh:273.0586 l_obj:107.3738 l_noobj:101.6870 l_cls:227.0445
+Epoch 10 mAP:1.299762e-03total:811.5170 l_xy:149.2798 l_wh:260.9470 l_obj:102.3288 l_noobj:95.6605 l_cls:203.3009
+
+
+we trained concorde 00 ten epochs. next: concorde 010 with double l_noobj = 0.2 and double l_wh = 1.0
