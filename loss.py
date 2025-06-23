@@ -140,8 +140,7 @@ class YOLOv2Loss(nn.Module):
         }
         return total, breakdown
     
-
-# ------------------------------------------------------------------
+ #------------------------------------------------------------------
 # Evaluation: mean Average Precision (mAP @ IoU=0.5)
 # ------------------------------------------------------------------
 
@@ -195,24 +194,40 @@ def _compute_ap(rec, prec):
     return ap/11
 
 
-def average_precision(model: nn.Module, dataset, device='cpu', iou_thresh=0.5, score_thresh=0.5, max_batches: int | None = 3):
-    """Compute mAP@0.5 using at most *max_batches* batches from *dataset*.
+def _boxes_to_corners(box):
+    """(cx,cy,w,h) → (x1,y1,x2,y2) with same scale."""
+    x1 = box[..., 0] - box[..., 2] / 2
+    y1 = box[..., 1] - box[..., 3] / 2
+    x2 = box[..., 0] + box[..., 2] / 2
+    y2 = box[..., 1] + box[..., 3] / 2
+    return torch.stack((x1, y1, x2, y2), dim=-1)
 
-    Parameters
-    ----------
-    model : nn.Module
-    dataset : Dataset
-    device : str
-    iou_thresh : float
-    score_thresh : float
-    max_batches : int | None
-        If given, stop evaluation after this many batches (quick sanity‑check).
-    """
-    loader = DataLoader(dataset, batch_size=2, shuffle=False, num_workers=0) 
+
+def _box_iou_matrix(boxes1, boxes2):
+    """Vectorised IoU for two sets of boxes in (cx,cy,w,h)."""
+    if boxes1.numel() == 0 or boxes2.numel() == 0:
+        return torch.zeros((boxes1.size(0), boxes2.size(0)), device=boxes1.device)
+    b1 = _boxes_to_corners(boxes1)  # (M,4)
+    b2 = _boxes_to_corners(boxes2)  # (N,4)
+    # broadcast corners
+    tl = torch.maximum(b1[:, None, :2], b2[None, :, :2])  # top‑left
+    br = torch.minimum(b1[:, None, 2:], b2[None, :, 2:])  # bottom‑right
+    wh = (br - tl).clamp(min=0)
+    inter = wh[..., 0] * wh[..., 1]
+    area1 = (b1[:, 2] - b1[:, 0]) * (b1[:, 3] - b1[:, 1])
+    area2 = (b2[:, 2] - b2[:, 0]) * (b2[:, 3] - b2[:, 1])
+    union = area1[:, None] + area2[None, :] - inter + 1e-9
+    return inter / union
+
+
+def average_precision(model: nn.Module, dataset, device='cpu', iou_thresh=0.5, score_thresh=0.5, max_batches: int | None = 3):
+    """Compute mAP@IoU using at most *max_batches* batches (fast eval)."""
+    loader = DataLoader(dataset, batch_size=2, shuffle=False, num_workers=4, pin_memory=True)
     model.eval(); model.to(device)
     num_classes = config.C
     # per‑class lists
-    TP, FP, scores, total_gt = [[] for _ in range(num_classes)], [[] for _ in range(num_classes)], [[] for _ in range(num_classes)], [0]*num_classes
+    TP, FP, Conf = [[] for _ in range(num_classes)], [[] for _ in range(num_classes)], [[] for _ in range(num_classes)]
+    total_gt = [0]*num_classes
 
     with torch.no_grad():
         for b_idx, (imgs, targets) in enumerate(loader):
@@ -222,51 +237,63 @@ def average_precision(model: nn.Module, dataset, device='cpu', iou_thresh=0.5, s
             preds = model(imgs).cpu()
             detections = _decode_predictions(preds, score_thresh)
             for det, tgt in zip(detections, targets):
-                # ground truth boxes per class
-                gt_boxes_per_cls = {c: [] for c in range(num_classes)}
+                # collect GT boxes per class
                 obj = tgt[...,4] > 0.5
                 if obj.any():
-                    # flatten anchor index for each GT box in this image
-                    anc_idx = obj.nonzero(as_tuple=False)[:, -1]  # anchor id (last dim)  # anchor id 0..A-1
-                    g_tx = tgt[..., 0][obj]
-                    g_ty = tgt[..., 1][obj]
-                    g_tw = tgt[..., 2][obj]
-                    g_th = tgt[..., 3][obj]
-                    anc = torch.tensor(config.ANCHORS, device=tgt.device, dtype=tgt.dtype)[anc_idx]
-                    gw = torch.exp(g_tw) * anc[:, 0]
-                    gh = torch.exp(g_th) * anc[:, 1]
-                    gboxes = torch.stack([g_tx, g_ty, gw, gh], dim=-1)
-                    glabels = tgt[..., 5:][obj].argmax(dim=-1)
-                    for b, l in zip(gboxes, glabels):
-                        gt_boxes_per_cls[int(l.item())].append({'box':b, 'matched':False})
-                        total_gt[int(l)] += 1
-                # predictions per class sorted by score
-                for box, score, label in zip(det['boxes'], det['scores'], det['labels']):
-                    c = int(label.item())
-                    scores[c].append(score.item())
-                    match = False
-                    for gt in gt_boxes_per_cls[c]:
-                        if not gt['matched'] and _bbox_iou(box, gt['box']) >= iou_thresh:
-                            match = True; gt['matched'] = True; break
-                    TP[c].append(1 if match else 0)
-                    FP[c].append(0 if match else 1)
+                    anc_idx = obj.nonzero(as_tuple=False)[:, -1]
+                    g_tx = tgt[...,0][obj]; g_ty = tgt[...,1][obj]
+                    g_tw = tgt[...,2][obj]; g_th = tgt[...,3][obj]
+                    anc = torch.tensor(config.ANCHORS)[anc_idx]
+                    gw = torch.exp(g_tw) * anc[:,0]
+                    gh = torch.exp(g_th) * anc[:,1]
+                    gboxes = torch.stack((g_tx,g_ty,gw,gh), dim=-1)
+                    glabels = tgt[...,5:][obj].argmax(dim=-1)
+                else:
+                    gboxes = torch.empty((0,4)); glabels = torch.empty((0,), dtype=torch.long)
+
+                for cls in torch.unique(torch.cat((det['labels'], glabels))):
+                    c = int(cls.item())
+                    # predictions of this class
+                    mask_pred = det['labels'] == c
+                    if mask_pred.sum() == 0 and (glabels==c).sum()==0:
+                        continue
+                    p_boxes = det['boxes'][mask_pred]
+                    p_scores = det['scores'][mask_pred]
+                    # ground truths of this class
+                    mask_gt = glabels == c
+                    g_boxes_c = gboxes[mask_gt]
+                    matched_gt = torch.zeros(len(g_boxes_c), dtype=torch.bool)
+                    # sort preds by confidence
+                    if p_boxes.numel():
+                        order = torch.argsort(p_scores, descending=True)
+                        p_boxes = p_boxes[order]; p_scores = p_scores[order]
+                    for box, score in zip(p_boxes, p_scores):
+                        if g_boxes_c.numel()==0:
+                            FP[c].append(1); TP[c].append(0); Conf[c].append(score.item()); continue
+                        ious = _box_iou_matrix(box.unsqueeze(0), g_boxes_c).squeeze(0)
+                        max_iou, idx = ious.max(0)
+                        if max_iou >= iou_thresh and not matched_gt[idx]:
+                            TP[c].append(1); FP[c].append(0); matched_gt[idx]=True
+                        else:
+                            TP[c].append(0); FP[c].append(1)
+                        Conf[c].append(score.item())
+                    total_gt[c] += g_boxes_c.size(0)
 
     APs = []
     for c in range(num_classes):
-        if total_gt[c] == 0:
-            continue
-        # sort by score desc
-        if len(scores[c])==0:
+        if total_gt[c]==0: continue
+        if len(Conf[c])==0:
             APs.append(0.0); continue
-        scores_c = torch.tensor(scores[c])
+        # sort by confidence
+        scores_c = torch.tensor(Conf[c])
         order = torch.argsort(scores_c, descending=True)
         tp_c = torch.tensor(TP[c])[order].float()
         fp_c = torch.tensor(FP[c])[order].float()
-        tp_c = torch.cumsum(tp_c, dim=0)
-        fp_c = torch.cumsum(fp_c, dim=0)
+        tp_c = torch.cumsum(tp_c, 0); fp_c = torch.cumsum(fp_c, 0)
         rec = tp_c / (total_gt[c]+1e-9)
-        prec = tp_c / (tp_c + fp_c + 1e-9)
+        prec = tp_c / (tp_c+fp_c+1e-9)
         APs.append(_compute_ap(rec, prec).item())
+
     mAP = sum(APs)/len(APs) if APs else 0.0
-    print(f"mAP@{iou_thresh}: {mAP:.4f}")
+    print(f"mAP@{iou_thresh}: {mAP:.4f}  (evaluated on {min(max_batches, len(loader)) if max_batches else len(loader)} batch(es))")
     return mAP

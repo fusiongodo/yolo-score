@@ -16,11 +16,14 @@ class ObjectDetectionDataset(Dataset):
       image tensor: FloatTensor of shape (3, 896, 896)
       target tensor: FloatTensor of shape (config.S, config.S, config.A, 5 + config.C)
     """
-    def __init__(self, gt_df, img_dir):
+    def __init__(self, gt_df, img_dir = config.img_dir, eval = False):
         self.gt_df = gt_df
         self.img_dir = img_dir
         # Unique image IDs
-        self.img_ids = gt_df['img_id'].unique()
+        if not eval:
+            self.img_ids = gt_df['img_id'].unique()
+        if eval:
+            self.img_ids = gt_df['img_id'].unique()[:192]
         # Group annotations by img_id for fast lookup
         self.grouped = gt_df.groupby('img_id')
 
