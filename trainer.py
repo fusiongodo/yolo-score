@@ -41,7 +41,7 @@ class Trainer:
     def run(self):
         import time  # local import to avoid unused when not training
         steps_per_epoch = len(self.dataloader)
-        log_interval = max(1, steps_per_epoch // 2)
+        log_interval = max(1, steps_per_epoch // 1)
         global_step = 0
         for epoch in range(1, self.epochs + 1):
             running = {k: 0.0 for k in ['total', 'l_xy', 'l_wh', 'l_obj', 'l_noobj', 'l_cls']}

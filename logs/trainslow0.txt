@@ -1,0 +1,486 @@
+# step total l_xy l_wh l_obj l_noobj l_cls
+000170 total:720.3094 l_xy:79.6063 l_wh:81.4814 l_obj:11.4053 l_noobj:515.7544 l_cls:32.0620
+000340 total:742.9987 l_xy:87.4807 l_wh:91.4167 l_obj:13.0963 l_noobj:514.5363 l_cls:36.4686
+000341 total:869.8974 l_xy:97.1372 l_wh:196.0178 l_obj:13.8787 l_noobj:516.9821 l_cls:45.8817
+Epoch 1 avg total:732.0594 l_xy:83.5834 l_wh:86.7704 l_obj:12.2556 l_noobj:515.1507 l_cls:34.2994
+000511 total:711.9316 l_xy:76.0696 l_wh:85.1568 l_obj:11.1716 l_noobj:513.5156 l_cls:26.0179
+000681 total:709.9862 l_xy:76.7827 l_wh:82.4071 l_obj:11.2884 l_noobj:512.8214 l_cls:26.6866
+000682 total:707.7853 l_xy:81.7023 l_wh:76.2858 l_obj:9.9886 l_noobj:512.6688 l_cls:27.1398
+Epoch 2 avg total:710.9496 l_xy:76.4416 l_wh:83.7600 l_obj:11.2264 l_noobj:513.1671 l_cls:26.3546
+000852 total:697.3464 l_xy:71.0199 l_wh:82.3794 l_obj:10.8201 l_noobj:511.8162 l_cls:21.3108
+001022 total:697.7508 l_xy:71.3010 l_wh:80.0254 l_obj:10.5862 l_noobj:511.3723 l_cls:24.4659
+001023 total:673.6694 l_xy:55.7835 l_wh:82.8444 l_obj:7.6089 l_noobj:509.9035 l_cls:17.5291
+Epoch 3 avg total:697.4786 l_xy:71.1154 l_wh:81.2072 l_obj:10.6940 l_noobj:511.5893 l_cls:22.8727
+001193 total:685.5625 l_xy:66.6970 l_wh:78.9554 l_obj:9.9807 l_noobj:510.3822 l_cls:19.5472
+001363 total:689.2047 l_xy:67.8841 l_wh:78.9078 l_obj:10.3596 l_noobj:509.7706 l_cls:22.2826
+001364 total:815.1331 l_xy:137.6294 l_wh:103.0367 l_obj:23.5011 l_noobj:507.8602 l_cls:43.1057
+Epoch 4 avg total:687.7582 l_xy:67.4968 l_wh:79.0023 l_obj:10.2092 l_noobj:510.0699 l_cls:20.9800
+001534 total:678.3337 l_xy:63.4425 l_wh:78.2777 l_obj:9.7605 l_noobj:508.9211 l_cls:17.9319
+001704 total:677.8763 l_xy:63.5467 l_wh:75.6625 l_obj:9.9317 l_noobj:508.3892 l_cls:20.3462
+001705 total:565.4100 l_xy:13.9952 l_wh:34.0868 l_obj:2.9072 l_noobj:508.8948 l_cls:5.5260
+Epoch 5 avg total:677.7745 l_xy:63.3494 l_wh:76.8444 l_obj:9.8257 l_noobj:508.6559 l_cls:19.0991
+001875 total:664.7615 l_xy:57.5294 l_wh:74.9547 l_obj:9.0527 l_noobj:507.4368 l_cls:15.7878
+002045 total:668.6223 l_xy:60.1158 l_wh:73.3237 l_obj:9.3755 l_noobj:506.9996 l_cls:18.8078
+002046 total:1397.9144 l_xy:266.4723 l_wh:322.4607 l_obj:52.6948 l_noobj:500.3225 l_cls:255.9642
+Epoch 6 avg total:668.8363 l_xy:59.4316 l_wh:74.8674 l_obj:9.3416 l_noobj:507.1980 l_cls:17.9977
+002216 total:662.7738 l_xy:56.4110 l_wh:72.6621 l_obj:9.0492 l_noobj:506.3797 l_cls:18.2718
+002386 total:657.2212 l_xy:55.7653 l_wh:72.3816 l_obj:8.8497 l_noobj:505.3259 l_cls:14.8987
+002387 total:958.0704 l_xy:166.0073 l_wh:191.9008 l_obj:29.9704 l_noobj:502.3315 l_cls:67.8604
+Epoch 7 avg total:660.8716 l_xy:56.4105 l_wh:72.8719 l_obj:9.0111 l_noobj:505.8425 l_cls:16.7356
+002557 total:655.4670 l_xy:53.8700 l_wh:72.1347 l_obj:8.4236 l_noobj:504.6523 l_cls:16.3865
+002727 total:641.8342 l_xy:49.7339 l_wh:68.2850 l_obj:8.1792 l_noobj:503.9343 l_cls:11.7018
+002728 total:667.1539 l_xy:54.3726 l_wh:83.6215 l_obj:14.5651 l_noobj:503.7631 l_cls:10.8315
+Epoch 8 avg total:648.7049 l_xy:51.8095 l_wh:70.2492 l_obj:8.3197 l_noobj:504.2917 l_cls:14.0348
+002898 total:645.8653 l_xy:50.0627 l_wh:71.1801 l_obj:7.9672 l_noobj:503.0898 l_cls:13.5655
+003068 total:630.2816 l_xy:45.0986 l_wh:64.9425 l_obj:7.5360 l_noobj:502.5498 l_cls:10.1547
+003069 total:580.8160 l_xy:24.9643 l_wh:44.3115 l_obj:5.4176 l_noobj:502.9235 l_cls:3.1992
+Epoch 9 avg total:637.9056 l_xy:47.5143 l_wh:67.9917 l_obj:7.7448 l_noobj:502.8201 l_cls:11.8347
+003239 total:628.4271 l_xy:43.5716 l_wh:66.4380 l_obj:7.3020 l_noobj:501.5807 l_cls:9.5348
+003409 total:635.9656 l_xy:47.6032 l_wh:66.4352 l_obj:7.5918 l_noobj:501.4458 l_cls:12.8896
+003410 total:675.1815 l_xy:76.2176 l_wh:67.9230 l_obj:15.0323 l_noobj:500.3464 l_cls:15.6623
+Epoch 10 avg total:632.3224 l_xy:45.6772 l_wh:66.4409 l_obj:7.4691 l_noobj:501.5099 l_cls:11.2252
+003580 total:626.7961 l_xy:43.7113 l_wh:65.0864 l_obj:7.1970 l_noobj:500.3456 l_cls:10.4557
+003750 total:625.5460 l_xy:42.3984 l_wh:63.9056 l_obj:7.1637 l_noobj:500.0620 l_cls:12.0164
+003751 total:630.2049 l_xy:43.3301 l_wh:60.8198 l_obj:5.1449 l_noobj:499.4755 l_cls:21.4347
+Epoch 11 avg total:626.1829 l_xy:43.0556 l_wh:64.4852 l_obj:7.1744 l_noobj:500.2017 l_cls:11.2660
+003921 total:624.0579 l_xy:42.2162 l_wh:62.0497 l_obj:6.9688 l_noobj:499.3549 l_cls:13.4682
+004091 total:622.0552 l_xy:41.3396 l_wh:63.9945 l_obj:6.8969 l_noobj:498.5654 l_cls:11.2588
+004092 total:581.8412 l_xy:26.9061 l_wh:30.7609 l_obj:5.6979 l_noobj:499.2273 l_cls:19.2490
+Epoch 12 avg total:622.9357 l_xy:41.7343 l_wh:62.9275 l_obj:6.9293 l_noobj:498.9609 l_cls:12.3837
+004262 total:614.5343 l_xy:38.8484 l_wh:60.9325 l_obj:6.5836 l_noobj:497.7825 l_cls:10.3873
+004432 total:613.1033 l_xy:38.6036 l_wh:61.0428 l_obj:6.5287 l_noobj:497.3172 l_cls:9.6109
+004433 total:581.9611 l_xy:30.0566 l_wh:30.7910 l_obj:4.1858 l_noobj:497.5957 l_cls:19.3320
+Epoch 13 avg total:613.7253 l_xy:38.7006 l_wh:60.8991 l_obj:6.5492 l_noobj:497.5500 l_cls:10.0265
+004603 total:611.5098 l_xy:37.7258 l_wh:61.6596 l_obj:6.4975 l_noobj:496.4359 l_cls:9.1911
+004773 total:604.5953 l_xy:35.6639 l_wh:56.8861 l_obj:6.2957 l_noobj:495.9269 l_cls:9.8226
+004774 total:577.2084 l_xy:27.5993 l_wh:48.8265 l_obj:4.3110 l_noobj:495.0385 l_cls:1.4331
+Epoch 14 avg total:607.9621 l_xy:36.6682 l_wh:59.2422 l_obj:6.3905 l_noobj:496.1781 l_cls:9.4832
+004944 total:603.0945 l_xy:35.0406 l_wh:57.8918 l_obj:6.1791 l_noobj:495.0949 l_cls:8.8881
+005114 total:603.3395 l_xy:35.0197 l_wh:57.6216 l_obj:6.2754 l_noobj:494.6918 l_cls:9.7310
+005115 total:542.0195 l_xy:13.7690 l_wh:17.1071 l_obj:8.1541 l_noobj:497.0352 l_cls:5.9540
+Epoch 15 avg total:603.0375 l_xy:34.9678 l_wh:57.6375 l_obj:6.2329 l_noobj:494.8996 l_cls:9.2997
+005285 total:594.9493 l_xy:32.0721 l_wh:54.2723 l_obj:5.8799 l_noobj:493.9167 l_cls:8.8083
+005455 total:601.3877 l_xy:34.5022 l_wh:58.0390 l_obj:6.1161 l_noobj:493.4132 l_cls:9.3173
+005456 total:630.4167 l_xy:43.0758 l_wh:80.5697 l_obj:6.7710 l_noobj:491.7108 l_cls:8.2894
+Epoch 16 avg total:598.2631 l_xy:33.3159 l_wh:56.2272 l_obj:6.0003 l_noobj:493.6592 l_cls:9.0605
+005626 total:591.4743 l_xy:30.7675 l_wh:54.1532 l_obj:5.5973 l_noobj:492.5388 l_cls:8.4175
+005796 total:597.1042 l_xy:32.9186 l_wh:54.9270 l_obj:5.9770 l_noobj:492.1644 l_cls:11.1172
+005797 total:617.3850 l_xy:38.6915 l_wh:67.4264 l_obj:6.8929 l_noobj:491.9088 l_cls:12.4654
+Epoch 17 avg total:594.3570 l_xy:31.8631 l_wh:54.5779 l_obj:5.7904 l_noobj:492.3503 l_cls:9.7753
+005967 total:595.4125 l_xy:32.2645 l_wh:54.6897 l_obj:5.9712 l_noobj:491.4006 l_cls:11.0865
+006137 total:589.3590 l_xy:30.9082 l_wh:51.8237 l_obj:5.8160 l_noobj:490.9523 l_cls:9.8589
+006138 total:638.2712 l_xy:41.8013 l_wh:85.0437 l_obj:7.3735 l_noobj:488.8403 l_cls:15.2125
+Epoch 18 avg total:592.5203 l_xy:31.6163 l_wh:53.3499 l_obj:5.8980 l_noobj:491.1696 l_cls:10.4866
+006308 total:590.4923 l_xy:31.4465 l_wh:51.8740 l_obj:5.6174 l_noobj:490.2268 l_cls:11.3276
+006478 total:586.9872 l_xy:29.9979 l_wh:52.4792 l_obj:5.7120 l_noobj:489.5974 l_cls:9.2007
+006479 total:514.9092 l_xy:8.0086 l_wh:5.6158 l_obj:2.3721 l_noobj:491.8476 l_cls:7.0650
+Epoch 19 avg total:588.5232 l_xy:30.6556 l_wh:52.0401 l_obj:5.6550 l_noobj:489.9178 l_cls:10.2548
+006649 total:588.4505 l_xy:29.8376 l_wh:53.4733 l_obj:5.6355 l_noobj:488.9008 l_cls:10.6033
+006819 total:575.1003 l_xy:26.5187 l_wh:46.9190 l_obj:4.9688 l_noobj:488.3205 l_cls:8.3732
+006820 total:731.7088 l_xy:38.4350 l_wh:194.4697 l_obj:5.4171 l_noobj:488.4297 l_cls:4.9572
+Epoch 20 avg total:582.2151 l_xy:28.2083 l_wh:50.6192 l_obj:5.3025 l_noobj:488.6101 l_cls:9.4750
+006990 total:576.8072 l_xy:26.6241 l_wh:51.0813 l_obj:5.0193 l_noobj:487.2607 l_cls:6.8217
+007160 total:566.7900 l_xy:23.6229 l_wh:45.5735 l_obj:4.5667 l_noobj:486.8471 l_cls:6.1799
+007161 total:511.5704 l_xy:8.4950 l_wh:7.1272 l_obj:4.2189 l_noobj:488.7215 l_cls:3.0078
+Epoch 21 avg total:571.6220 l_xy:25.0747 l_wh:48.2066 l_obj:4.7913 l_noobj:487.0588 l_cls:6.4905
+007331 total:569.1269 l_xy:23.0179 l_wh:49.5573 l_obj:4.4715 l_noobj:485.8269 l_cls:6.2533
+007501 total:567.1997 l_xy:24.3337 l_wh:44.8303 l_obj:4.8799 l_noobj:485.6494 l_cls:7.5064
+007502 total:522.2162 l_xy:10.5105 l_wh:20.7369 l_obj:2.1625 l_noobj:486.3583 l_cls:2.4480
+Epoch 22 avg total:568.0286 l_xy:23.6372 l_wh:47.1162 l_obj:4.6683 l_noobj:485.7399 l_cls:6.8669
+007672 total:569.5909 l_xy:24.5219 l_wh:47.6498 l_obj:4.7331 l_noobj:484.9336 l_cls:7.7526
+007842 total:562.9722 l_xy:22.9588 l_wh:44.0820 l_obj:4.6967 l_noobj:484.2974 l_cls:6.9372
+007843 total:526.5460 l_xy:15.2410 l_wh:8.4614 l_obj:4.7011 l_noobj:485.7120 l_cls:12.4305
+Epoch 23 avg total:566.1650 l_xy:23.7154 l_wh:45.7562 l_obj:4.7149 l_noobj:484.6187 l_cls:7.3598
+008013 total:564.5177 l_xy:23.4566 l_wh:45.7782 l_obj:4.5824 l_noobj:483.6075 l_cls:7.0930
+008183 total:559.2834 l_xy:22.9014 l_wh:43.0816 l_obj:4.5326 l_noobj:483.0004 l_cls:5.7674
+008184 total:560.2858 l_xy:20.2409 l_wh:51.9649 l_obj:3.4630 l_noobj:481.2676 l_cls:3.3494
+Epoch 24 avg total:561.8958 l_xy:23.1704 l_wh:44.4520 l_obj:4.5543 l_noobj:483.2980 l_cls:6.4211
+008354 total:559.1018 l_xy:22.6041 l_wh:42.7968 l_obj:4.5092 l_noobj:482.3355 l_cls:6.8563
+008524 total:558.0617 l_xy:21.8242 l_wh:43.8082 l_obj:4.5093 l_noobj:481.7872 l_cls:6.1329
+008525 total:593.6628 l_xy:37.7715 l_wh:60.2111 l_obj:7.6074 l_noobj:479.9614 l_cls:8.1114
+Epoch 25 avg total:558.6847 l_xy:22.2598 l_wh:43.3521 l_obj:4.5183 l_noobj:482.0552 l_cls:6.4993
+008695 total:551.8893 l_xy:20.2204 l_wh:40.6335 l_obj:4.1606 l_noobj:481.2108 l_cls:5.6640
+008865 total:558.8755 l_xy:23.2523 l_wh:43.5576 l_obj:4.7573 l_noobj:480.5994 l_cls:6.7089
+008866 total:525.4200 l_xy:14.2597 l_wh:23.4474 l_obj:3.4534 l_noobj:481.0687 l_cls:3.1907
+Epoch 26 avg total:555.2945 l_xy:21.7144 l_wh:42.0409 l_obj:4.4560 l_noobj:480.9056 l_cls:6.1776
+009036 total:555.5148 l_xy:22.5444 l_wh:41.0812 l_obj:4.5311 l_noobj:480.0860 l_cls:7.2720
+009206 total:556.3268 l_xy:22.3960 l_wh:41.6318 l_obj:4.6385 l_noobj:479.6006 l_cls:8.0600
+009207 total:502.5895 l_xy:8.4529 l_wh:8.5195 l_obj:2.2048 l_noobj:480.8383 l_cls:2.5739
+Epoch 27 avg total:555.7644 l_xy:22.4291 l_wh:41.2602 l_obj:4.5778 l_noobj:479.8462 l_cls:7.6511
+009377 total:558.5584 l_xy:22.9886 l_wh:40.8190 l_obj:4.9371 l_noobj:479.0943 l_cls:10.7194
+009547 total:555.0676 l_xy:22.5622 l_wh:40.3562 l_obj:4.7730 l_noobj:478.6446 l_cls:8.7316
+009548 total:500.4112 l_xy:9.7192 l_wh:8.1241 l_obj:2.0479 l_noobj:479.1456 l_cls:1.3744
+Epoch 28 avg total:556.6476 l_xy:22.7371 l_wh:40.4924 l_obj:4.8468 l_noobj:478.8702 l_cls:9.7010
+009718 total:544.5310 l_xy:19.2926 l_wh:36.7125 l_obj:4.2540 l_noobj:477.5755 l_cls:6.6964
+009888 total:546.4068 l_xy:19.0881 l_wh:40.0970 l_obj:4.3833 l_noobj:476.8393 l_cls:5.9991
+009889 total:492.4427 l_xy:6.1424 l_wh:2.8823 l_obj:3.1386 l_noobj:479.5765 l_cls:0.7030
+Epoch 29 avg total:545.3134 l_xy:19.1520 l_wh:38.3006 l_obj:4.3152 l_noobj:477.2144 l_cls:6.3312
+010059 total:539.3845 l_xy:17.1114 l_wh:36.9202 l_obj:4.2034 l_noobj:476.0716 l_cls:5.0779
+010229 total:539.0900 l_xy:16.9852 l_wh:37.0441 l_obj:4.1350 l_noobj:475.6228 l_cls:5.3030
+010230 total:503.4552 l_xy:8.1007 l_wh:13.6602 l_obj:2.2309 l_noobj:476.7811 l_cls:2.6823
+Epoch 30 avg total:539.1323 l_xy:17.0220 l_wh:36.9137 l_obj:4.1635 l_noobj:475.8499 l_cls:5.1831
+010400 total:536.3001 l_xy:15.6709 l_wh:36.6991 l_obj:3.9409 l_noobj:474.8981 l_cls:5.0911
+010570 total:535.3303 l_xy:16.8964 l_wh:35.2190 l_obj:4.0816 l_noobj:474.2482 l_cls:4.8852
+010571 total:540.7132 l_xy:20.8800 l_wh:35.4634 l_obj:6.1876 l_noobj:473.0863 l_cls:5.0958
+Epoch 31 avg total:535.8296 l_xy:16.2971 l_wh:35.9576 l_obj:4.0176 l_noobj:474.5688 l_cls:4.9885
+010741 total:537.6084 l_xy:17.5222 l_wh:36.3948 l_obj:4.3035 l_noobj:473.7958 l_cls:5.5920
+010911 total:537.3054 l_xy:18.5267 l_wh:34.3237 l_obj:4.2570 l_noobj:473.4915 l_cls:6.7065
+010912 total:600.6184 l_xy:32.8122 l_wh:68.2290 l_obj:5.5401 l_noobj:474.6966 l_cls:19.3405
+Epoch 32 avg total:537.6421 l_xy:18.0678 l_wh:35.4557 l_obj:4.2839 l_noobj:473.6467 l_cls:6.1880
+011082 total:539.6161 l_xy:18.8016 l_wh:36.1731 l_obj:4.5649 l_noobj:472.8272 l_cls:7.2493
+011252 total:531.9124 l_xy:17.2503 l_wh:32.6231 l_obj:4.2541 l_noobj:472.0395 l_cls:5.7454
+011253 total:498.0697 l_xy:13.4636 l_wh:4.4339 l_obj:2.2112 l_noobj:473.9681 l_cls:3.9929
+Epoch 33 avg total:535.6537 l_xy:18.0126 l_wh:34.3102 l_obj:4.4031 l_noobj:472.4378 l_cls:6.4900
+011423 total:531.0208 l_xy:16.6589 l_wh:32.4930 l_obj:4.1529 l_noobj:471.3962 l_cls:6.3199
+011593 total:532.2329 l_xy:16.9641 l_wh:34.5628 l_obj:4.2383 l_noobj:470.8309 l_cls:5.6368
+011594 total:519.7324 l_xy:12.1558 l_wh:30.3009 l_obj:3.2810 l_noobj:471.2296 l_cls:2.7652
+Epoch 34 avg total:531.5920 l_xy:16.7978 l_wh:33.5185 l_obj:4.1929 l_noobj:471.1139 l_cls:5.9689
+011764 total:526.5785 l_xy:15.0174 l_wh:32.7335 l_obj:3.9489 l_noobj:469.9633 l_cls:4.9153
+011934 total:524.5024 l_xy:14.9590 l_wh:31.1303 l_obj:3.9187 l_noobj:469.5534 l_cls:4.9409
+011935 total:506.9277 l_xy:10.0451 l_wh:13.1511 l_obj:5.6526 l_noobj:470.8816 l_cls:7.1973
+Epoch 35 avg total:525.4858 l_xy:14.9737 l_wh:31.8768 l_obj:3.9389 l_noobj:469.7617 l_cls:4.9348
+012105 total:525.0642 l_xy:15.2495 l_wh:31.7195 l_obj:3.9566 l_noobj:468.8276 l_cls:5.3109
+012275 total:522.3349 l_xy:14.6731 l_wh:30.3549 l_obj:4.0047 l_noobj:468.3992 l_cls:4.9030
+012276 total:498.9276 l_xy:7.3714 l_wh:17.5789 l_obj:2.7532 l_noobj:469.2945 l_cls:1.9297
+Epoch 36 avg total:523.6269 l_xy:14.9390 l_wh:30.9977 l_obj:3.9771 l_noobj:468.6154 l_cls:5.0976
+012446 total:524.0743 l_xy:15.7004 l_wh:31.4033 l_obj:4.0564 l_noobj:467.6979 l_cls:5.2163
+012616 total:521.4578 l_xy:14.8058 l_wh:30.0408 l_obj:3.9985 l_noobj:467.2451 l_cls:5.3676
+012617 total:552.8873 l_xy:17.9045 l_wh:61.1366 l_obj:4.2824 l_noobj:467.0133 l_cls:2.5505
+Epoch 37 avg total:522.8544 l_xy:15.2609 l_wh:30.8112 l_obj:4.0282 l_noobj:467.4701 l_cls:5.2839
+012787 total:518.9789 l_xy:14.0756 l_wh:29.2933 l_obj:3.7100 l_noobj:466.4975 l_cls:5.4026
+012957 total:558.8852 l_xy:27.4362 l_wh:33.1834 l_obj:6.3392 l_noobj:467.6923 l_cls:24.2341
+012958 total:530.4985 l_xy:19.8009 l_wh:28.5603 l_obj:2.5900 l_noobj:466.3989 l_cls:13.1484
+Epoch 38 avg total:538.9073 l_xy:20.7531 l_wh:31.2305 l_obj:5.0175 l_noobj:467.0928 l_cls:14.8134
+013128 total:532.3259 l_xy:19.9996 l_wh:31.8192 l_obj:4.8790 l_noobj:465.9769 l_cls:9.6512
+013298 total:520.1304 l_xy:15.9262 l_wh:27.5821 l_obj:4.2970 l_noobj:465.0901 l_cls:7.2349
+013299 total:493.7422 l_xy:6.3522 l_wh:19.4814 l_obj:1.3926 l_noobj:464.3939 l_cls:2.1222
+Epoch 39 avg total:526.1329 l_xy:17.9288 l_wh:29.6707 l_obj:4.5786 l_noobj:465.5302 l_cls:8.4245
+013469 total:513.8723 l_xy:12.9556 l_wh:28.6495 l_obj:3.8562 l_noobj:464.0295 l_cls:4.3814
+013639 total:511.7013 l_xy:13.0290 l_wh:27.1597 l_obj:3.8035 l_noobj:463.5009 l_cls:4.2081
+013640 total:505.4207 l_xy:14.0283 l_wh:8.4823 l_obj:3.7786 l_noobj:465.6039 l_cls:13.5277
+Epoch 40 avg total:512.7652 l_xy:12.9953 l_wh:27.8476 l_obj:3.8297 l_noobj:463.7706 l_cls:4.3219
+013810 total:509.4662 l_xy:11.7822 l_wh:27.6646 l_obj:3.5999 l_noobj:462.7030 l_cls:3.7165
+013980 total:505.9654 l_xy:11.2649 l_wh:25.0141 l_obj:3.6545 l_noobj:462.2135 l_cls:3.8184
+013981 total:488.4715 l_xy:12.6663 l_wh:4.2886 l_obj:0.6814 l_noobj:464.8606 l_cls:5.9747
+Epoch 41 avg total:507.6594 l_xy:11.5269 l_wh:26.2747 l_obj:3.6186 l_noobj:462.4653 l_cls:3.7739
+014151 total:506.0164 l_xy:10.9962 l_wh:26.0386 l_obj:3.6223 l_noobj:461.5545 l_cls:3.8048
+014321 total:504.6584 l_xy:11.4627 l_wh:24.8768 l_obj:3.6312 l_noobj:460.9824 l_cls:3.7052
+014322 total:601.9987 l_xy:27.2939 l_wh:98.0842 l_obj:7.2363 l_noobj:458.5334 l_cls:10.8508
+Epoch 42 avg total:505.6209 l_xy:11.2766 l_wh:25.6707 l_obj:3.6373 l_noobj:461.2605 l_cls:3.7758
+014492 total:507.4772 l_xy:12.1119 l_wh:26.9022 l_obj:3.6346 l_noobj:460.3444 l_cls:4.4841
+014662 total:506.0077 l_xy:12.7610 l_wh:23.9925 l_obj:3.9553 l_noobj:460.0815 l_cls:5.2174
+014663 total:479.6457 l_xy:5.6998 l_wh:4.5595 l_obj:3.8705 l_noobj:461.9860 l_cls:3.5298
+Epoch 43 avg total:506.6630 l_xy:12.4167 l_wh:25.3861 l_obj:3.7952 l_noobj:460.2182 l_cls:4.8469
+014833 total:509.3093 l_xy:14.3185 l_wh:24.8727 l_obj:4.1353 l_noobj:459.7965 l_cls:6.1863
+015003 total:505.8116 l_xy:13.7051 l_wh:24.7261 l_obj:3.9869 l_noobj:458.8924 l_cls:4.5011
+015004 total:535.1125 l_xy:20.7542 l_wh:42.6186 l_obj:4.9716 l_noobj:457.5938 l_cls:9.1745
+Epoch 44 avg total:507.6412 l_xy:14.0316 l_wh:24.8516 l_obj:4.0638 l_noobj:459.3393 l_cls:5.3550
+015174 total:504.4556 l_xy:13.0521 l_wh:23.9928 l_obj:3.8519 l_noobj:458.3339 l_cls:5.2249
+015344 total:502.1431 l_xy:12.1832 l_wh:23.8303 l_obj:3.8930 l_noobj:457.7833 l_cls:4.4533
+015345 total:567.1251 l_xy:26.7389 l_wh:67.9228 l_obj:7.2844 l_noobj:454.6451 l_cls:10.5339
+Epoch 45 avg total:503.4865 l_xy:12.6590 l_wh:24.0407 l_obj:3.8824 l_noobj:458.0486 l_cls:4.8558
+015515 total:500.0712 l_xy:11.7306 l_wh:23.5861 l_obj:3.6259 l_noobj:457.0306 l_cls:4.0979
+015685 total:500.3532 l_xy:12.9708 l_wh:22.2557 l_obj:3.6935 l_noobj:456.5541 l_cls:4.8791
+015686 total:586.9431 l_xy:30.3504 l_wh:76.2341 l_obj:6.6376 l_noobj:453.2057 l_cls:20.5153
+Epoch 46 avg total:500.4665 l_xy:12.4035 l_wh:23.0772 l_obj:3.6685 l_noobj:456.7818 l_cls:4.5355
+015856 total:499.5651 l_xy:12.3826 l_wh:22.0575 l_obj:3.6626 l_noobj:455.8697 l_cls:5.5927
+016026 total:498.8026 l_xy:12.4070 l_wh:22.2382 l_obj:3.9462 l_noobj:455.4973 l_cls:4.7138
+016027 total:511.8821 l_xy:16.2269 l_wh:31.3299 l_obj:4.2392 l_noobj:453.7542 l_cls:6.3319
+Epoch 47 avg total:499.2211 l_xy:12.4060 l_wh:22.1748 l_obj:3.8057 l_noobj:455.6779 l_cls:5.1567
+016197 total:498.1611 l_xy:12.4025 l_wh:22.4850 l_obj:3.8454 l_noobj:454.6467 l_cls:4.7814
+016367 total:497.7252 l_xy:12.7535 l_wh:21.6910 l_obj:3.9608 l_noobj:454.4482 l_cls:4.8716
+016368 total:471.0551 l_xy:5.3983 l_wh:6.4676 l_obj:2.5070 l_noobj:455.5968 l_cls:1.0854
+Epoch 48 avg total:497.8643 l_xy:12.5570 l_wh:22.0422 l_obj:3.8990 l_noobj:454.5506 l_cls:4.8155
+016538 total:493.8792 l_xy:11.3660 l_wh:20.8906 l_obj:3.6843 l_noobj:453.4998 l_cls:4.4386
+016708 total:493.3838 l_xy:11.4244 l_wh:20.9533 l_obj:3.7268 l_noobj:452.9823 l_cls:4.2970
+016709 total:471.8788 l_xy:8.6782 l_wh:4.3368 l_obj:2.6915 l_noobj:454.1717 l_cls:2.0006
+Epoch 49 avg total:493.5677 l_xy:11.3872 l_wh:20.8733 l_obj:3.7026 l_noobj:453.2438 l_cls:4.3609
+016879 total:497.7039 l_xy:13.1083 l_wh:20.9669 l_obj:3.8259 l_noobj:452.5741 l_cls:7.2286
+017049 total:492.4193 l_xy:11.7165 l_wh:20.1903 l_obj:3.7734 l_noobj:451.9592 l_cls:4.7798
+017050 total:524.0135 l_xy:22.5340 l_wh:35.2606 l_obj:8.3395 l_noobj:449.0041 l_cls:8.8753
+Epoch 50 avg total:495.1465 l_xy:12.4421 l_wh:20.6217 l_obj:3.8130 l_noobj:452.2571 l_cls:6.0126
+017220 total:486.1291 l_xy:10.0167 l_wh:17.2791 l_obj:3.4433 l_noobj:451.2798 l_cls:4.1103
+017390 total:491.6537 l_xy:11.4173 l_wh:21.5696 l_obj:3.7969 l_noobj:450.5387 l_cls:4.3312
+017391 total:459.6888 l_xy:4.1863 l_wh:1.5171 l_obj:1.2923 l_noobj:452.3728 l_cls:0.3203
+Epoch 51 avg total:488.8058 l_xy:10.6978 l_wh:19.3718 l_obj:3.6133 l_noobj:450.9136 l_cls:4.2093
+017561 total:488.8650 l_xy:10.6727 l_wh:20.4859 l_obj:3.5886 l_noobj:449.9001 l_cls:4.2177
+017731 total:484.0694 l_xy:10.1092 l_wh:17.3458 l_obj:3.4179 l_noobj:449.4477 l_cls:3.7489
+017732 total:478.0786 l_xy:6.9553 l_wh:15.0726 l_obj:2.7066 l_noobj:449.3838 l_cls:3.9602
+Epoch 52 avg total:486.4426 l_xy:10.3809 l_wh:18.9046 l_obj:3.5009 l_noobj:449.6730 l_cls:3.9832
+017902 total:483.5498 l_xy:9.4870 l_wh:18.4879 l_obj:3.3286 l_noobj:448.5759 l_cls:3.6703
+018072 total:482.2613 l_xy:9.5103 l_wh:17.4724 l_obj:3.4150 l_noobj:448.2735 l_cls:3.5901
+018073 total:480.7621 l_xy:7.3780 l_wh:18.6579 l_obj:3.3093 l_noobj:447.5298 l_cls:3.8872
+Epoch 53 avg total:482.8992 l_xy:9.4924 l_wh:17.9821 l_obj:3.3716 l_noobj:448.4221 l_cls:3.6310
+018243 total:482.7790 l_xy:9.9388 l_wh:17.6126 l_obj:3.5002 l_noobj:447.6465 l_cls:4.0809
+018413 total:485.1103 l_xy:11.6062 l_wh:17.9213 l_obj:3.7980 l_noobj:447.2685 l_cls:4.5163
+018414 total:481.5955 l_xy:10.7605 l_wh:15.2910 l_obj:6.1070 l_noobj:447.6699 l_cls:1.7672
+Epoch 54 avg total:483.9378 l_xy:10.7725 l_wh:17.7597 l_obj:3.6563 l_noobj:447.4582 l_cls:4.2911
+018584 total:485.0545 l_xy:11.7741 l_wh:17.9128 l_obj:3.8421 l_noobj:446.7234 l_cls:4.8021
+018754 total:483.4836 l_xy:11.3778 l_wh:17.8591 l_obj:3.8176 l_noobj:446.1726 l_cls:4.2566
+018755 total:481.7569 l_xy:9.0561 l_wh:16.9668 l_obj:4.0943 l_noobj:445.9745 l_cls:5.6652
+Epoch 55 avg total:484.2617 l_xy:11.5685 l_wh:17.8833 l_obj:3.8306 l_noobj:446.4466 l_cls:4.5327
+018925 total:484.3512 l_xy:11.5876 l_wh:18.4316 l_obj:3.8975 l_noobj:445.5475 l_cls:4.8870
+019095 total:478.6909 l_xy:10.5158 l_wh:14.9365 l_obj:3.6717 l_noobj:445.0272 l_cls:4.5397
+019096 total:510.7742 l_xy:14.4685 l_wh:28.0336 l_obj:7.3105 l_noobj:442.8994 l_cls:18.0621
+Epoch 56 avg total:481.6068 l_xy:11.0617 l_wh:16.7173 l_obj:3.7949 l_noobj:445.2804 l_cls:4.7525
+019266 total:486.9517 l_xy:13.4452 l_wh:17.3044 l_obj:4.2035 l_noobj:444.6369 l_cls:7.3618
+019436 total:482.1450 l_xy:11.7128 l_wh:16.7275 l_obj:3.8362 l_noobj:444.0156 l_cls:5.8529
+019437 total:494.2408 l_xy:15.6473 l_wh:20.6672 l_obj:7.4327 l_noobj:442.6971 l_cls:7.7963
+Epoch 57 avg total:484.5768 l_xy:12.5880 l_wh:17.0266 l_obj:4.0299 l_noobj:444.3215 l_cls:6.6108
+019607 total:476.9199 l_xy:9.8877 l_wh:15.7997 l_obj:3.5940 l_noobj:443.2242 l_cls:4.4143
+019777 total:474.9783 l_xy:10.0890 l_wh:15.1245 l_obj:3.6290 l_noobj:442.4315 l_cls:3.7044
+019778 total:452.5073 l_xy:3.7668 l_wh:2.3392 l_obj:2.4811 l_noobj:443.3857 l_cls:0.5345
+Epoch 58 avg total:475.8804 l_xy:9.9701 l_wh:15.4236 l_obj:3.6082 l_noobj:442.8295 l_cls:4.0490
+019948 total:473.8649 l_xy:9.6452 l_wh:14.5047 l_obj:3.5701 l_noobj:441.9501 l_cls:4.1948
+020118 total:475.3561 l_xy:10.1562 l_wh:15.4850 l_obj:3.7733 l_noobj:441.6055 l_cls:4.3361
+020119 total:487.7819 l_xy:15.5307 l_wh:21.9451 l_obj:5.0440 l_noobj:440.2997 l_cls:4.9623
+Epoch 59 avg total:474.6492 l_xy:9.9172 l_wh:15.0152 l_obj:3.6758 l_noobj:441.7735 l_cls:4.2675
+020289 total:472.6440 l_xy:9.3106 l_wh:14.6493 l_obj:3.5684 l_noobj:440.9420 l_cls:4.1737
+020459 total:470.9218 l_xy:9.2434 l_wh:14.0855 l_obj:3.5093 l_noobj:440.1534 l_cls:3.9302
+020460 total:457.2468 l_xy:3.6895 l_wh:6.0371 l_obj:1.3009 l_noobj:445.8890 l_cls:0.3303
+Epoch 60 avg total:471.7403 l_xy:9.2606 l_wh:14.3430 l_obj:3.5323 l_noobj:440.5633 l_cls:4.0410
+020630 total:472.6386 l_xy:9.3275 l_wh:15.9519 l_obj:3.5681 l_noobj:439.5947 l_cls:4.1964
+020800 total:466.1495 l_xy:8.4904 l_wh:11.7529 l_obj:3.3968 l_noobj:439.1676 l_cls:3.3418
+020801 total:465.7057 l_xy:7.6975 l_wh:6.0572 l_obj:7.1962 l_noobj:439.8554 l_cls:4.8995
+Epoch 61 avg total:469.3832 l_xy:8.9054 l_wh:13.8295 l_obj:3.4933 l_noobj:439.3826 l_cls:3.7724
+020971 total:466.1154 l_xy:8.0251 l_wh:12.7260 l_obj:3.3366 l_noobj:438.4303 l_cls:3.5974
+021141 total:466.7179 l_xy:8.7047 l_wh:13.0822 l_obj:3.4059 l_noobj:437.9196 l_cls:3.6055
+021142 total:569.3650 l_xy:7.2352 l_wh:118.4828 l_obj:1.7253 l_noobj:438.1252 l_cls:3.7965
+Epoch 62 avg total:466.7186 l_xy:8.3616 l_wh:13.2137 l_obj:3.3664 l_noobj:438.1748 l_cls:3.6020
+021312 total:469.4151 l_xy:10.2127 l_wh:12.2832 l_obj:3.6838 l_noobj:437.6424 l_cls:5.5929
+021482 total:472.5131 l_xy:10.7308 l_wh:15.2381 l_obj:4.0085 l_noobj:436.9829 l_cls:5.5528
+021483 total:472.2655 l_xy:11.3630 l_wh:14.7655 l_obj:4.8599 l_noobj:436.6870 l_cls:4.5901
+Epoch 63 avg total:470.9679 l_xy:10.4743 l_wh:13.7636 l_obj:3.8491 l_noobj:437.3108 l_cls:5.5700
+021653 total:465.9284 l_xy:9.5592 l_wh:12.6731 l_obj:3.4833 l_noobj:436.4100 l_cls:3.8029
+021823 total:466.3906 l_xy:9.6560 l_wh:12.9454 l_obj:3.7558 l_noobj:435.7145 l_cls:4.3189
+021824 total:466.5021 l_xy:7.3797 l_wh:15.2761 l_obj:2.5217 l_noobj:435.4766 l_cls:5.8481
+Epoch 64 avg total:466.1605 l_xy:9.6011 l_wh:12.8165 l_obj:3.6163 l_noobj:436.0605 l_cls:4.0661
+021994 total:464.6706 l_xy:8.8308 l_wh:13.2866 l_obj:3.4527 l_noobj:435.2280 l_cls:3.8725
+022164 total:464.0847 l_xy:9.9276 l_wh:11.7544 l_obj:3.6616 l_noobj:434.6181 l_cls:4.1231
+022165 total:460.0426 l_xy:8.6227 l_wh:7.6609 l_obj:2.1352 l_noobj:435.8629 l_cls:5.7609
+Epoch 65 avg total:464.3650 l_xy:9.3770 l_wh:12.5062 l_obj:3.5530 l_noobj:434.9258 l_cls:4.0030
+022335 total:462.1674 l_xy:8.7855 l_wh:11.6815 l_obj:3.5095 l_noobj:434.0043 l_cls:4.1867
+022505 total:462.9173 l_xy:9.5644 l_wh:12.0413 l_obj:3.6536 l_noobj:433.6327 l_cls:4.0253
+022506 total:507.9408 l_xy:22.4825 l_wh:40.0364 l_obj:4.8919 l_noobj:430.1811 l_cls:10.3489
+Epoch 66 avg total:462.6755 l_xy:9.2139 l_wh:11.9440 l_obj:3.5854 l_noobj:433.8078 l_cls:4.1243
+022676 total:465.0131 l_xy:10.2899 l_wh:13.0008 l_obj:3.8614 l_noobj:432.9766 l_cls:4.8844
+022846 total:458.6135 l_xy:8.4892 l_wh:10.3801 l_obj:3.5492 l_noobj:432.4453 l_cls:3.7497
+022847 total:454.5581 l_xy:10.5253 l_wh:6.7176 l_obj:3.4250 l_noobj:431.5934 l_cls:2.2968
+Epoch 67 avg total:461.7920 l_xy:9.3929 l_wh:11.6759 l_obj:3.7045 l_noobj:432.7077 l_cls:4.3111
+023017 total:459.5414 l_xy:8.5980 l_wh:10.3466 l_obj:3.5956 l_noobj:432.0694 l_cls:4.9319
+023187 total:461.8745 l_xy:9.8713 l_wh:12.4862 l_obj:3.8135 l_noobj:431.0208 l_cls:4.6828
+023188 total:452.5183 l_xy:9.6067 l_wh:8.2361 l_obj:2.5372 l_noobj:431.0958 l_cls:1.0427
+Epoch 68 avg total:460.6839 l_xy:9.2357 l_wh:11.4070 l_obj:3.7012 l_noobj:431.5438 l_cls:4.7963
+023358 total:457.4775 l_xy:8.6846 l_wh:10.1152 l_obj:3.5314 l_noobj:430.7944 l_cls:4.3519
+023528 total:462.0607 l_xy:10.3441 l_wh:11.3694 l_obj:3.7576 l_noobj:430.1522 l_cls:6.4374
+023529 total:446.1967 l_xy:5.4881 l_wh:2.8068 l_obj:4.1796 l_noobj:431.6844 l_cls:2.0379
+Epoch 69 avg total:459.7293 l_xy:9.5025 l_wh:10.7190 l_obj:3.6460 l_noobj:430.4769 l_cls:5.3848
+023699 total:461.0116 l_xy:10.2037 l_wh:11.7021 l_obj:3.9852 l_noobj:429.6668 l_cls:5.4538
+023869 total:457.4164 l_xy:9.2254 l_wh:10.4736 l_obj:3.6304 l_noobj:429.1430 l_cls:4.9440
+023870 total:453.3104 l_xy:9.5656 l_wh:7.4337 l_obj:2.9724 l_noobj:428.5621 l_cls:4.7765
+Epoch 70 avg total:459.1967 l_xy:9.7142 l_wh:11.0771 l_obj:3.8054 l_noobj:429.4024 l_cls:5.1976
+024040 total:451.9840 l_xy:7.5276 l_wh:9.3769 l_obj:3.3072 l_noobj:428.4370 l_cls:3.3353
+024210 total:453.4806 l_xy:8.0551 l_wh:10.3897 l_obj:3.5589 l_noobj:427.7375 l_cls:3.7394
+024211 total:478.1363 l_xy:13.1457 l_wh:26.2651 l_obj:7.3437 l_noobj:425.8430 l_cls:5.5387
+Epoch 71 avg total:452.8068 l_xy:7.8071 l_wh:9.9314 l_obj:3.4445 l_noobj:428.0807 l_cls:3.5432
+024381 total:451.2265 l_xy:7.2280 l_wh:9.9253 l_obj:3.3367 l_noobj:427.1817 l_cls:3.5547
+024551 total:449.9612 l_xy:7.4632 l_wh:9.4557 l_obj:3.2868 l_noobj:426.6348 l_cls:3.1207
+024552 total:493.0254 l_xy:16.4678 l_wh:38.6360 l_obj:3.8161 l_noobj:423.9910 l_cls:10.1145
+Epoch 72 avg total:450.7183 l_xy:7.3724 l_wh:9.7754 l_obj:3.3132 l_noobj:426.8997 l_cls:3.3576
+024722 total:450.9939 l_xy:7.8225 l_wh:9.7550 l_obj:3.5107 l_noobj:426.1375 l_cls:3.7681
+024892 total:448.6007 l_xy:7.6116 l_wh:8.8087 l_obj:3.4532 l_noobj:425.5172 l_cls:3.2100
+024893 total:434.7242 l_xy:5.1950 l_wh:1.1183 l_obj:1.1318 l_noobj:427.1697 l_cls:0.1096
+Epoch 73 avg total:449.7531 l_xy:7.7097 l_wh:9.2579 l_obj:3.4751 l_noobj:425.8313 l_cls:3.4792
+025063 total:448.1529 l_xy:7.2251 l_wh:9.4957 l_obj:3.3685 l_noobj:424.9811 l_cls:3.0825
+025233 total:447.6923 l_xy:7.4850 l_wh:8.9112 l_obj:3.4411 l_noobj:424.3654 l_cls:3.4897
+025234 total:442.3972 l_xy:6.7460 l_wh:5.7113 l_obj:2.5973 l_noobj:424.8299 l_cls:2.5127
+Epoch 74 avg total:447.9064 l_xy:7.3533 l_wh:9.1932 l_obj:3.4024 l_noobj:424.6737 l_cls:3.2838
+025404 total:447.5653 l_xy:7.5291 l_wh:9.4204 l_obj:3.4864 l_noobj:423.9005 l_cls:3.2289
+025574 total:447.5979 l_xy:7.9793 l_wh:8.5600 l_obj:3.5923 l_noobj:423.4453 l_cls:4.0210
+025575 total:434.3994 l_xy:4.0429 l_wh:1.4433 l_obj:3.1948 l_noobj:425.3653 l_cls:0.3531
+Epoch 75 avg total:447.5430 l_xy:7.7433 l_wh:8.9681 l_obj:3.5383 l_noobj:423.6779 l_cls:3.6154
+025745 total:446.7171 l_xy:8.0355 l_wh:8.9745 l_obj:3.4777 l_noobj:422.7535 l_cls:3.4759
+025915 total:444.9235 l_xy:7.6272 l_wh:8.2229 l_obj:3.4432 l_noobj:422.4692 l_cls:3.1610
+025916 total:446.7509 l_xy:7.9950 l_wh:7.2440 l_obj:6.9484 l_noobj:423.1050 l_cls:1.4585
+Epoch 76 avg total:445.8230 l_xy:7.8318 l_wh:8.5947 l_obj:3.4707 l_noobj:422.6128 l_cls:3.3130
+026086 total:446.0654 l_xy:8.0589 l_wh:9.0251 l_obj:3.5223 l_noobj:421.7564 l_cls:3.7027
+026256 total:444.0029 l_xy:7.6080 l_wh:8.1679 l_obj:3.5009 l_noobj:421.2995 l_cls:3.4266
+026257 total:445.1753 l_xy:8.9969 l_wh:7.6212 l_obj:3.2653 l_noobj:420.6858 l_cls:4.6062
+Epoch 77 avg total:445.0346 l_xy:7.8368 l_wh:8.5936 l_obj:3.5109 l_noobj:421.5255 l_cls:3.5677
+026427 total:446.1693 l_xy:8.8510 l_wh:8.6136 l_obj:3.5895 l_noobj:420.7092 l_cls:4.4060
+026597 total:446.4613 l_xy:9.1565 l_wh:8.9508 l_obj:3.7842 l_noobj:420.3802 l_cls:4.1896
+026598 total:440.6163 l_xy:8.3022 l_wh:4.1477 l_obj:2.0813 l_noobj:422.1892 l_cls:3.8958
+Epoch 78 avg total:446.2986 l_xy:9.0017 l_wh:8.7686 l_obj:3.6822 l_noobj:420.5495 l_cls:4.2966
+026768 total:447.7148 l_xy:10.3426 l_wh:8.5295 l_obj:4.0012 l_noobj:420.0383 l_cls:4.8032
+026938 total:447.7526 l_xy:10.3637 l_wh:9.1865 l_obj:3.9235 l_noobj:419.1767 l_cls:5.1021
+026939 total:439.2321 l_xy:10.3248 l_wh:2.0598 l_obj:1.9637 l_noobj:420.5794 l_cls:4.3044
+Epoch 79 avg total:447.7088 l_xy:10.3531 l_wh:8.8380 l_obj:3.9565 l_noobj:419.6104 l_cls:4.9508
+027109 total:442.8423 l_xy:8.6288 l_wh:7.8737 l_obj:3.6349 l_noobj:418.6598 l_cls:4.0450
+027279 total:441.9279 l_xy:8.1296 l_wh:8.4637 l_obj:3.5606 l_noobj:417.9210 l_cls:3.8530
+027280 total:439.7084 l_xy:6.6669 l_wh:2.7875 l_obj:3.2227 l_noobj:418.0296 l_cls:9.0018
+Epoch 80 avg total:442.3772 l_xy:8.3742 l_wh:8.1529 l_obj:3.5966 l_noobj:418.2896 l_cls:3.9638
+027450 total:438.6568 l_xy:7.2470 l_wh:7.2408 l_obj:3.4830 l_noobj:417.2726 l_cls:3.4133
+027620 total:438.2965 l_xy:7.0492 l_wh:7.5736 l_obj:3.3622 l_noobj:416.6990 l_cls:3.6126
+027621 total:431.0348 l_xy:6.8507 l_wh:2.1493 l_obj:2.4201 l_noobj:418.9507 l_cls:0.6641
+Epoch 81 avg total:438.4548 l_xy:7.1472 l_wh:7.3918 l_obj:3.4196 l_noobj:416.9916 l_cls:3.5046
+027791 total:437.8726 l_xy:7.4906 l_wh:7.3267 l_obj:3.4418 l_noobj:416.1946 l_cls:3.4189
+027961 total:435.5410 l_xy:6.4397 l_wh:6.8752 l_obj:3.3996 l_noobj:415.6594 l_cls:3.1671
+027962 total:435.7025 l_xy:4.6021 l_wh:10.3616 l_obj:2.0783 l_noobj:415.4776 l_cls:3.1830
+Epoch 82 avg total:436.7038 l_xy:6.9582 l_wh:7.1105 l_obj:3.4168 l_noobj:415.9257 l_cls:3.2926
+028132 total:435.1288 l_xy:6.3791 l_wh:7.2051 l_obj:3.2712 l_noobj:414.9929 l_cls:3.2806
+028302 total:441.5302 l_xy:9.1821 l_wh:7.5428 l_obj:3.7545 l_noobj:414.9766 l_cls:6.0742
+028303 total:432.2944 l_xy:5.8086 l_wh:3.5415 l_obj:1.6923 l_noobj:418.7365 l_cls:2.5154
+Epoch 83 avg total:438.3118 l_xy:7.7748 l_wh:7.3627 l_obj:3.5075 l_noobj:414.9957 l_cls:4.6711
+028473 total:451.9764 l_xy:13.5260 l_wh:9.0438 l_obj:4.5284 l_noobj:414.9325 l_cls:9.9456
+028643 total:438.3999 l_xy:9.0114 l_wh:7.5043 l_obj:3.6050 l_noobj:413.7023 l_cls:4.5769
+028644 total:421.9616 l_xy:3.6917 l_wh:1.6986 l_obj:2.6759 l_noobj:413.5695 l_cls:0.3259
+Epoch 84 avg total:445.1201 l_xy:11.2465 l_wh:8.2548 l_obj:4.0626 l_noobj:414.3152 l_cls:7.2409
+028814 total:433.2331 l_xy:7.0792 l_wh:6.6038 l_obj:3.3579 l_noobj:412.7753 l_cls:3.4169
+028984 total:432.7939 l_xy:6.7953 l_wh:6.9385 l_obj:3.2266 l_noobj:412.3645 l_cls:3.4690
+028985 total:427.0838 l_xy:5.9816 l_wh:3.4170 l_obj:4.1920 l_noobj:412.1436 l_cls:1.3496
+Epoch 85 avg total:432.9961 l_xy:6.9345 l_wh:6.7613 l_obj:3.2949 l_noobj:412.5686 l_cls:3.4368
+029155 total:430.2988 l_xy:6.1540 l_wh:6.7139 l_obj:2.9929 l_noobj:411.5425 l_cls:2.8954
+029325 total:429.9747 l_xy:6.0068 l_wh:6.5483 l_obj:3.2048 l_noobj:411.2146 l_cls:3.0003
+029326 total:434.4823 l_xy:9.8635 l_wh:7.0091 l_obj:4.0589 l_noobj:409.8701 l_cls:3.6808
+Epoch 86 avg total:430.1495 l_xy:6.0915 l_wh:6.6322 l_obj:3.1017 l_noobj:411.3741 l_cls:2.9500
+029496 total:428.1930 l_xy:5.4376 l_wh:6.2924 l_obj:3.0322 l_noobj:410.6378 l_cls:2.7930
+029666 total:428.4823 l_xy:5.9048 l_wh:6.9188 l_obj:3.0307 l_noobj:409.8787 l_cls:2.7493
+029667 total:478.3224 l_xy:16.9818 l_wh:41.8254 l_obj:5.6544 l_noobj:405.4958 l_cls:8.3650
+Epoch 87 avg total:428.4842 l_xy:5.7044 l_wh:6.7089 l_obj:3.0391 l_noobj:410.2443 l_cls:2.7875
+029837 total:426.7516 l_xy:5.3903 l_wh:6.2438 l_obj:3.0427 l_noobj:409.4706 l_cls:2.6042
+030007 total:426.5706 l_xy:6.1049 l_wh:5.4650 l_obj:3.2288 l_noobj:408.9237 l_cls:2.8481
+030008 total:420.7249 l_xy:3.6940 l_wh:2.8952 l_obj:3.8813 l_noobj:409.9317 l_cls:0.3227
+Epoch 88 avg total:426.6437 l_xy:5.7416 l_wh:5.8457 l_obj:3.1380 l_noobj:409.1993 l_cls:2.7191
+030178 total:427.9356 l_xy:6.6849 l_wh:5.8801 l_obj:3.2888 l_noobj:408.3861 l_cls:3.6957
+030348 total:432.4306 l_xy:8.4522 l_wh:7.1450 l_obj:3.8053 l_noobj:408.3983 l_cls:4.6299
+030349 total:467.3152 l_xy:22.0175 l_wh:29.8235 l_obj:5.4802 l_noobj:404.1702 l_cls:5.8237
+Epoch 89 avg total:430.2920 l_xy:7.6109 l_wh:6.5809 l_obj:3.5527 l_noobj:408.3798 l_cls:4.1677
+030519 total:429.2627 l_xy:7.6653 l_wh:6.4687 l_obj:3.6746 l_noobj:407.7487 l_cls:3.7054
+030689 total:429.6654 l_xy:8.2840 l_wh:6.4848 l_obj:3.7192 l_noobj:407.0724 l_cls:4.1050
+030690 total:423.9105 l_xy:5.1485 l_wh:1.7349 l_obj:4.0896 l_noobj:409.0637 l_cls:3.8738
+Epoch 90 avg total:429.4478 l_xy:7.9664 l_wh:6.4629 l_obj:3.6980 l_noobj:407.4154 l_cls:3.9051
+030860 total:428.1618 l_xy:7.6086 l_wh:6.7333 l_obj:3.5770 l_noobj:406.4943 l_cls:3.7487
+031030 total:424.5753 l_xy:6.6290 l_wh:5.5602 l_obj:3.2650 l_noobj:405.8357 l_cls:3.2855
+031031 total:413.7173 l_xy:2.8257 l_wh:1.0425 l_obj:2.5796 l_noobj:407.1878 l_cls:0.0817
+Epoch 91 avg total:426.3315 l_xy:7.1062 l_wh:6.1318 l_obj:3.4185 l_noobj:406.1680 l_cls:3.5070
+031201 total:424.9457 l_xy:6.7395 l_wh:6.3379 l_obj:3.3951 l_noobj:405.2148 l_cls:3.2584
+031371 total:424.0667 l_xy:6.6451 l_wh:5.8103 l_obj:3.3943 l_noobj:404.9768 l_cls:3.2402
+031372 total:415.1036 l_xy:5.7492 l_wh:1.5822 l_obj:2.6302 l_noobj:403.9575 l_cls:1.1845
+Epoch 92 avg total:424.4786 l_xy:6.6895 l_wh:6.0610 l_obj:3.3924 l_noobj:405.0924 l_cls:3.2433
+031542 total:423.5296 l_xy:6.6044 l_wh:5.4084 l_obj:3.5336 l_noobj:404.3443 l_cls:3.6389
+031712 total:429.4942 l_xy:9.4745 l_wh:6.7879 l_obj:4.0324 l_noobj:404.3418 l_cls:4.8576
+031713 total:432.7218 l_xy:9.9981 l_wh:13.8892 l_obj:2.9044 l_noobj:401.8000 l_cls:4.1301
+Epoch 93 avg total:426.5301 l_xy:8.0452 l_wh:6.1210 l_obj:3.7804 l_noobj:404.3356 l_cls:4.2479
+031883 total:424.0479 l_xy:7.7089 l_wh:5.8896 l_obj:3.5284 l_noobj:403.3475 l_cls:3.5735
+032053 total:423.0333 l_xy:7.3316 l_wh:5.9690 l_obj:3.4836 l_noobj:402.7981 l_cls:3.4510
+032054 total:420.4663 l_xy:4.8144 l_wh:4.5703 l_obj:4.5821 l_noobj:403.1120 l_cls:3.3875
+Epoch 94 avg total:423.5316 l_xy:7.5123 l_wh:5.9253 l_obj:3.5091 l_noobj:403.0729 l_cls:3.5119
+032224 total:422.2321 l_xy:7.1380 l_wh:5.7575 l_obj:3.4879 l_noobj:402.3917 l_cls:3.4570
+032394 total:420.4056 l_xy:6.7101 l_wh:5.4765 l_obj:3.4179 l_noobj:401.6050 l_cls:3.1961
+032395 total:425.0356 l_xy:6.9927 l_wh:6.0431 l_obj:3.4074 l_noobj:403.1464 l_cls:5.4460
+Epoch 95 avg total:421.3298 l_xy:6.9243 l_wh:5.6183 l_obj:3.4528 l_noobj:402.0017 l_cls:3.3328
+032565 total:417.7909 l_xy:5.7993 l_wh:4.7365 l_obj:3.2094 l_noobj:401.0063 l_cls:3.0394
+032735 total:419.2784 l_xy:6.3844 l_wh:5.9447 l_obj:3.3618 l_noobj:400.4800 l_cls:3.1074
+032736 total:410.9762 l_xy:5.0760 l_wh:2.0140 l_obj:1.5729 l_noobj:400.8276 l_cls:1.4857
+Epoch 96 avg total:418.5125 l_xy:6.0889 l_wh:5.3308 l_obj:3.2806 l_noobj:400.7434 l_cls:3.0687
+032906 total:417.0062 l_xy:5.8071 l_wh:4.9609 l_obj:3.2458 l_noobj:400.1260 l_cls:2.8665
+033076 total:417.8786 l_xy:6.4149 l_wh:5.4447 l_obj:3.3888 l_noobj:399.3020 l_cls:3.3282
+033077 total:416.8021 l_xy:7.0860 l_wh:3.7216 l_obj:4.2678 l_noobj:400.1529 l_cls:1.5738
+Epoch 97 avg total:417.4405 l_xy:6.1139 l_wh:5.1985 l_obj:3.3201 l_noobj:399.7153 l_cls:3.0928
+033247 total:418.7730 l_xy:7.2273 l_wh:5.2977 l_obj:3.4922 l_noobj:398.9184 l_cls:3.8374
+033417 total:415.3173 l_xy:5.9323 l_wh:4.9733 l_obj:3.2148 l_noobj:398.4538 l_cls:2.7429
+033418 total:462.0276 l_xy:19.3913 l_wh:33.7390 l_obj:7.5620 l_noobj:394.3481 l_cls:6.9872
+Epoch 98 avg total:417.1771 l_xy:6.6174 l_wh:5.2194 l_obj:3.3659 l_noobj:398.6734 l_cls:3.3010
+033588 total:415.7248 l_xy:6.1829 l_wh:5.2672 l_obj:3.3360 l_noobj:397.8206 l_cls:3.1181
+033758 total:415.8375 l_xy:6.5428 l_wh:4.9695 l_obj:3.4683 l_noobj:397.5177 l_cls:3.3392
+033759 total:423.3770 l_xy:10.0195 l_wh:6.9691 l_obj:4.2099 l_noobj:396.4719 l_cls:5.7066
+Epoch 99 avg total:415.8035 l_xy:6.3736 l_wh:5.1238 l_obj:3.4045 l_noobj:397.6657 l_cls:3.2359
+033929 total:417.3253 l_xy:6.7732 l_wh:5.1302 l_obj:3.5658 l_noobj:397.0285 l_cls:4.8276
+034099 total:420.3860 l_xy:8.4788 l_wh:6.1588 l_obj:3.9296 l_noobj:396.5618 l_cls:5.2569
+034100 total:427.7298 l_xy:8.1411 l_wh:2.4430 l_obj:3.7077 l_noobj:397.0264 l_cls:16.4116
+Epoch 100 avg total:418.8817 l_xy:7.6275 l_wh:5.6351 l_obj:3.7476 l_noobj:396.7959 l_cls:5.0756
+034270 total:418.7719 l_xy:8.2417 l_wh:5.3269 l_obj:3.8082 l_noobj:396.0413 l_cls:5.3539
+034440 total:414.2823 l_xy:6.9378 l_wh:5.1158 l_obj:3.4342 l_noobj:395.3632 l_cls:3.4314
+034441 total:403.9349 l_xy:1.8309 l_wh:0.6664 l_obj:1.7157 l_noobj:398.8821 l_cls:0.8399
+Epoch 101 avg total:416.4902 l_xy:7.5729 l_wh:5.2080 l_obj:3.6156 l_noobj:395.7116 l_cls:4.3822
+034611 total:413.3747 l_xy:7.0309 l_wh:4.5385 l_obj:3.4296 l_noobj:394.7824 l_cls:3.5934
+034781 total:412.3402 l_xy:6.4407 l_wh:5.4228 l_obj:3.2981 l_noobj:394.2677 l_cls:2.9109
+034782 total:405.4580 l_xy:6.0563 l_wh:2.0553 l_obj:2.9378 l_noobj:393.4244 l_cls:0.9842
+Epoch 102 avg total:412.8358 l_xy:6.7338 l_wh:4.9721 l_obj:3.3626 l_noobj:394.5218 l_cls:3.2455
+034952 total:411.0502 l_xy:5.9014 l_wh:5.1223 l_obj:3.3127 l_noobj:393.5975 l_cls:3.1163
+035122 total:408.7864 l_xy:5.6128 l_wh:4.1615 l_obj:3.1939 l_noobj:393.0992 l_cls:2.7190
+035123 total:407.4729 l_xy:6.5571 l_wh:4.9417 l_obj:2.5436 l_noobj:392.3178 l_cls:1.1128
+Epoch 103 avg total:409.9111 l_xy:5.7594 l_wh:4.6427 l_obj:3.2512 l_noobj:393.3453 l_cls:2.9124
+035293 total:409.0434 l_xy:5.6624 l_wh:4.6097 l_obj:3.3473 l_noobj:392.5974 l_cls:2.8265
+035463 total:407.9477 l_xy:5.4405 l_wh:4.6541 l_obj:3.1699 l_noobj:392.0121 l_cls:2.6711
+035464 total:398.5058 l_xy:2.8776 l_wh:0.9294 l_obj:2.1995 l_noobj:392.3935 l_cls:0.1057
+Epoch 104 avg total:408.4662 l_xy:5.5436 l_wh:4.6211 l_obj:3.2555 l_noobj:392.3050 l_cls:2.7411
+035634 total:407.0449 l_xy:5.0711 l_wh:4.5593 l_obj:3.1789 l_noobj:391.5212 l_cls:2.7145
+035804 total:406.8247 l_xy:5.5896 l_wh:4.0452 l_obj:3.3951 l_noobj:391.0446 l_cls:2.7501
+035805 total:404.2031 l_xy:3.8307 l_wh:3.1621 l_obj:4.9338 l_noobj:391.2740 l_cls:1.0025
+Epoch 105 avg total:406.9268 l_xy:5.3259 l_wh:4.2989 l_obj:3.2918 l_noobj:391.2829 l_cls:2.7273
+035975 total:405.4177 l_xy:5.2192 l_wh:3.7233 l_obj:3.1768 l_noobj:390.5181 l_cls:2.7803
+036145 total:407.7729 l_xy:5.9341 l_wh:4.9849 l_obj:3.5202 l_noobj:390.0504 l_cls:3.2834
+036146 total:405.9135 l_xy:5.4151 l_wh:5.3070 l_obj:1.4580 l_noobj:389.8488 l_cls:3.8845
+Epoch 106 avg total:406.5933 l_xy:5.5762 l_wh:4.3569 l_obj:3.3430 l_noobj:390.2830 l_cls:3.0343
+036316 total:420.4854 l_xy:11.2278 l_wh:6.4419 l_obj:4.4112 l_noobj:390.0807 l_cls:8.3237
+036486 total:413.3327 l_xy:9.6079 l_wh:4.8302 l_obj:4.0644 l_noobj:389.5091 l_cls:5.3211
+036487 total:408.3028 l_xy:3.4647 l_wh:10.9998 l_obj:1.0789 l_noobj:391.8719 l_cls:0.8874
+Epoch 107 avg total:416.8838 l_xy:10.3975 l_wh:5.6518 l_obj:4.2286 l_noobj:389.8010 l_cls:6.8050
+036657 total:406.6450 l_xy:6.5842 l_wh:4.6584 l_obj:3.5602 l_noobj:388.7002 l_cls:3.1421
+036827 total:406.4264 l_xy:6.8738 l_wh:4.5697 l_obj:3.5933 l_noobj:387.9788 l_cls:3.4108
+036828 total:417.7499 l_xy:8.9342 l_wh:12.8093 l_obj:7.0786 l_noobj:387.1806 l_cls:1.7472
+Epoch 108 avg total:406.5686 l_xy:6.7355 l_wh:4.6381 l_obj:3.5870 l_noobj:388.3361 l_cls:3.2719
+036998 total:405.1630 l_xy:6.0418 l_wh:4.6342 l_obj:3.6114 l_noobj:387.4968 l_cls:3.3788
+037168 total:402.9445 l_xy:5.5086 l_wh:4.1171 l_obj:3.5423 l_noobj:387.0812 l_cls:2.6953
+037169 total:393.2417 l_xy:1.9479 l_wh:0.6146 l_obj:1.5492 l_noobj:389.0357 l_cls:0.0943
+Epoch 109 avg total:404.0220 l_xy:5.7639 l_wh:4.3646 l_obj:3.5709 l_noobj:387.2941 l_cls:3.0284
+037339 total:401.4383 l_xy:5.1102 l_wh:3.7514 l_obj:3.2707 l_noobj:386.4415 l_cls:2.8645
+037509 total:401.7344 l_xy:5.4848 l_wh:4.1267 l_obj:3.4897 l_noobj:385.7964 l_cls:2.8367
+037510 total:417.9492 l_xy:7.0814 l_wh:17.3539 l_obj:4.9684 l_noobj:383.7485 l_cls:4.7971
+Epoch 110 avg total:401.6343 l_xy:5.3028 l_wh:3.9784 l_obj:3.3848 l_noobj:386.1120 l_cls:2.8563
+037680 total:401.8016 l_xy:5.4850 l_wh:3.8742 l_obj:3.6190 l_noobj:385.4970 l_cls:3.3265
+037850 total:402.5558 l_xy:5.9681 l_wh:4.9763 l_obj:3.6029 l_noobj:384.8263 l_cls:3.1822
+037851 total:409.5151 l_xy:8.8751 l_wh:3.4291 l_obj:7.0226 l_noobj:383.5087 l_cls:6.6796
+Epoch 111 avg total:402.2003 l_xy:5.7358 l_wh:4.4223 l_obj:3.6210 l_noobj:385.1568 l_cls:3.2644
+038021 total:400.0397 l_xy:5.4366 l_wh:3.9852 l_obj:3.3699 l_noobj:384.3787 l_cls:2.8694
+038191 total:400.6595 l_xy:5.7678 l_wh:4.2554 l_obj:3.6497 l_noobj:383.8062 l_cls:3.1803
+038192 total:397.2824 l_xy:5.2600 l_wh:3.2531 l_obj:3.1616 l_noobj:382.9545 l_cls:2.6533
+Epoch 112 avg total:400.3406 l_xy:5.6012 l_wh:4.1177 l_obj:3.5088 l_noobj:384.0891 l_cls:3.0238
+038362 total:398.8492 l_xy:5.4249 l_wh:3.6981 l_obj:3.5286 l_noobj:383.2888 l_cls:2.9087
+038532 total:399.3768 l_xy:5.7153 l_wh:4.3404 l_obj:3.5576 l_noobj:382.8846 l_cls:2.8788
+038533 total:396.1811 l_xy:4.7579 l_wh:2.5276 l_obj:4.3424 l_noobj:383.4419 l_cls:1.1114
+Epoch 113 avg total:399.1044 l_xy:5.5677 l_wh:4.0149 l_obj:3.5455 l_noobj:383.0878 l_cls:2.8885
+038703 total:397.9138 l_xy:5.4332 l_wh:3.8891 l_obj:3.6094 l_noobj:382.3932 l_cls:2.5889
+038873 total:398.8933 l_xy:6.0909 l_wh:3.7782 l_obj:3.7065 l_noobj:381.9363 l_cls:3.3814
+038874 total:392.0025 l_xy:2.5584 l_wh:1.1313 l_obj:2.4832 l_noobj:383.4498 l_cls:2.3798
+Epoch 114 avg total:398.3848 l_xy:5.7527 l_wh:3.8257 l_obj:3.6545 l_noobj:382.1685 l_cls:2.9834
+039044 total:400.0030 l_xy:7.0400 l_wh:4.0079 l_obj:3.8613 l_noobj:381.6503 l_cls:3.4436
+039214 total:408.7391 l_xy:10.3495 l_wh:5.4130 l_obj:4.4533 l_noobj:381.3631 l_cls:7.1601
+039215 total:404.5690 l_xy:12.2450 l_wh:3.7253 l_obj:2.2512 l_noobj:380.2582 l_cls:6.0894
+Epoch 115 avg total:404.3716 l_xy:8.7051 l_wh:4.7076 l_obj:4.1517 l_noobj:381.5030 l_cls:5.3042
+039385 total:403.3471 l_xy:8.6463 l_wh:4.9395 l_obj:4.0774 l_noobj:380.5182 l_cls:5.1657
+039555 total:397.2644 l_xy:6.2349 l_wh:4.3523 l_obj:3.7426 l_noobj:379.9767 l_cls:2.9579
+039556 total:394.0912 l_xy:4.7208 l_wh:2.2305 l_obj:2.3084 l_noobj:378.5142 l_cls:6.3174
+Epoch 116 avg total:400.2875 l_xy:7.4326 l_wh:4.6388 l_obj:3.9053 l_noobj:380.2423 l_cls:4.0684
+039726 total:395.6765 l_xy:5.6401 l_wh:4.1975 l_obj:3.6904 l_noobj:379.2660 l_cls:2.8825
+039896 total:394.0930 l_xy:5.3665 l_wh:3.6128 l_obj:3.4528 l_noobj:378.7736 l_cls:2.8873
+039897 total:390.1521 l_xy:3.4504 l_wh:3.0087 l_obj:3.0723 l_noobj:378.5751 l_cls:2.0457
+Epoch 117 avg total:394.8708 l_xy:5.4973 l_wh:3.9025 l_obj:3.5702 l_noobj:379.0185 l_cls:2.8824
+040067 total:392.5806 l_xy:4.7341 l_wh:3.4175 l_obj:3.4874 l_noobj:378.2616 l_cls:2.6801
+040237 total:393.5772 l_xy:5.1650 l_wh:4.0517 l_obj:3.7035 l_noobj:377.7164 l_cls:2.9406
+040238 total:395.8399 l_xy:8.7479 l_wh:4.9803 l_obj:4.4651 l_noobj:374.7548 l_cls:2.8917
+Epoch 118 avg total:393.0870 l_xy:4.9607 l_wh:3.7383 l_obj:3.5980 l_noobj:377.9795 l_cls:2.8106
+040408 total:391.6461 l_xy:4.6631 l_wh:3.5106 l_obj:3.7040 l_noobj:377.1868 l_cls:2.5816
+040578 total:391.9849 l_xy:5.0180 l_wh:3.7385 l_obj:3.6610 l_noobj:376.8027 l_cls:2.7647
+040579 total:384.9741 l_xy:2.7117 l_wh:1.5641 l_obj:1.5870 l_noobj:377.3970 l_cls:1.7143
+Epoch 119 avg total:391.7954 l_xy:4.8343 l_wh:3.6185 l_obj:3.6763 l_noobj:376.9959 l_cls:2.6704
+040749 total:391.4131 l_xy:4.9856 l_wh:3.8228 l_obj:3.5443 l_noobj:376.0757 l_cls:2.9848
+040919 total:390.0283 l_xy:4.8433 l_wh:3.1955 l_obj:3.6487 l_noobj:375.7750 l_cls:2.5659
+040920 total:383.2614 l_xy:3.1385 l_wh:1.4144 l_obj:1.5178 l_noobj:377.0508 l_cls:0.1399
+Epoch 120 avg total:390.6988 l_xy:4.9092 l_wh:3.5030 l_obj:3.5904 l_noobj:375.9286 l_cls:2.7676
+041090 total:390.1920 l_xy:4.8834 l_wh:3.7857 l_obj:3.5868 l_noobj:375.2650 l_cls:2.6712
+041260 total:390.9108 l_xy:5.7207 l_wh:3.6962 l_obj:3.8434 l_noobj:374.7084 l_cls:2.9421
+041261 total:388.0654 l_xy:4.5059 l_wh:2.9398 l_obj:3.9400 l_noobj:374.7279 l_cls:1.9518
+Epoch 121 avg total:390.5441 l_xy:5.2997 l_wh:3.7386 l_obj:3.7158 l_noobj:374.9859 l_cls:2.8041
+041431 total:390.4454 l_xy:5.5917 l_wh:3.5574 l_obj:3.7370 l_noobj:374.3140 l_cls:3.2454
