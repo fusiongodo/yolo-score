@@ -23,13 +23,23 @@ import numpy as np
 
 
 class DataExtractor:
-    def __init__(self):
-        self.filepath = config.filepath
+    def __init__(self, slim = False):
+        self.original_data = config.filepath
+        if not slim:
+            self.filepath = config.filepath
+            self.normalized_path = os.path.join(
+                os.path.dirname(self.filepath),
+                "gt_space.json"
+            )
+        else:
+            self.filepath = config.slimpath
+            self.normalized_path = os.path.join(
+                os.path.dirname(self.filepath),
+                "gt_space_slim.json"
+            )
         # save next to deepscores_train.json:
-        self.normalized_path = os.path.join(
-            os.path.dirname(self.filepath),
-            "gt_space.json"
-        )
+        
+        
         self.data = None
         self.anns_df = None
         print(f"Saving to: {self.normalized_path}")
@@ -37,6 +47,30 @@ class DataExtractor:
     def loadData(self):
         with open(self.filepath, 'r') as f:
             return json.load(f)
+        
+    def loadSlimData(self):
+        with open(self.original_data, 'r') as f:
+            data =  json.load(f)
+
+        # 2) collect annotation IDs actually used by the 11 images
+        used_ids = {ann_id for img in data["images"] for ann_id in img["ann_ids"]}
+
+        # 3) build a pared-down annotations dict (only a_bbox, cat_id, img_id)
+        keep_keys = {"a_bbox", "cat_id", "img_id", "area"}
+        data["annotations"] = {
+            ann_id: {k: v for k, v in ann.items() if k in keep_keys}
+            for ann_id, ann in data["annotations"].items()
+            if ann_id in used_ids
+        }
+
+        print(f"kept {len(data['annotations'])} annotations; "
+            f"each with keys {sorted(keep_keys)}")
+
+        # 4) save compact JSON (no pretty-printing)
+        with open(config.slimpath, "w") as f:
+            json.dump(data, f, separators=(",", ":"))
+
+        print(f"filtered file written →  {config.slimpath}")
 
     def createMergedAnnsDF(self):
         images = pd.DataFrame(self.data["images"]).set_index("id")
@@ -47,7 +81,6 @@ class DataExtractor:
             .merge(images[['filename','width','height']],
                    left_on='img_id', right_index=True)
             .loc[lambda df: ~df['area'].astype(float).eq(0)]
-            .drop(columns=["o_bbox","area","comments"])
         )
         anns['cat_id'] = anns['cat_id'].apply(
             lambda x: x[0] if isinstance(x, (list,tuple)) and x else x
@@ -55,7 +88,7 @@ class DataExtractor:
         self.anns_df = anns
         return anns
 
-    def normalizedData(self):
+    def normalizedData(self, grouped = False):
         if os.path.exists(self.normalized_path):
             return pd.read_json(self.normalized_path)
 
@@ -94,13 +127,68 @@ class DataExtractor:
         df['class_id'] = df.class_id.astype(int)
         df["class_id"] = df["class_id"] - 1
         df = df[df.class_id < config.C]
-        
+
+        if grouped:
+            df = df.groupby('img_id')
 
         # ensure dir & save
         os.makedirs(os.path.dirname(self.normalized_path), exist_ok=True)
         df.to_json(self.normalized_path, orient='records', indent=2)
         return df
+    
+    def croppedData(self, grouped: bool = False):
+        """
+        Split the S×S grid into N×N crops and assign every bbox to its crop.
 
+        Added columns
+        -------------
+        crop_id      : flat index 0 … N²-1
+        crop_row/col : 2-D crop position inside the N×N crop grid
+        cx_loc/cy_loc: cell indices inside the crop-local m×m grid,
+                       where m = S // N
+
+        Other regression targets (tx, ty, tw, th) stay unchanged.
+        """
+        # --- start from the global (S×S) label table ---
+        df = self.normalizedData(grouped=False).copy()
+
+        S, N = config.S, config.N
+        if S % N:
+            raise ValueError(f"config.N ({N}) must evenly divide config.S ({S})")
+        m = S // N                                     # cells per crop edge
+
+        # --- determine crop indices -------------------------------------------------
+        df['crop_row'] = (df['cy'] // m).astype(int)   # 0 … N-1
+        df['crop_col'] = (df['cx'] // m).astype(int)
+        df['crop_id']  = df['crop_row'] * N + df['crop_col']
+
+        # --- cell coordinates inside the crop grid ----------------------------------
+        df['cx_loc'] = (df['cx'] % m).astype(int)
+        df['cy_loc'] = (df['cy'] % m).astype(int)
+
+        # --- tidy column order (keep globals for reference) -------------------------
+        col_order = [
+            'img_id', 'crop_id', 'cx_loc', 'cy_loc',    # crop-local info
+            'tx', 'ty', 'tw', 'th',                    # regression targets
+            'class_id', 'filename',                    # meta
+            'cx', 'cy', 'crop_row', 'crop_col'         # global refs (optional)
+        ]
+        df = df[col_order]
+
+        # --- cache on disk so subsequent calls are cheap ----------------------------
+        cropped_path = os.path.join(
+            os.path.dirname(self.filepath),
+            f"gt_space_{N}x{N}.json"
+        )
+        if not os.path.exists(cropped_path):
+            os.makedirs(os.path.dirname(cropped_path), exist_ok=True)
+            df.to_json(cropped_path, orient='records', indent=2)
+
+        # --- optional hierarchical grouping ----------------------------------------
+        if grouped:
+            df = df.groupby(['img_id', 'crop_id'])
+
+        return df
 
 
 save_dir = "model_dumps"
