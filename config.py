@@ -12,7 +12,7 @@ logdir   = os.path.join(BASE_DIR, "logs")
 S = 120
 A = 4
 C = 136
-N = 5
+N = 40
 
 ANCHORS = np.array([
     [0.02080085, 0.01517667],

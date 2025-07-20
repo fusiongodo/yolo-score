@@ -138,40 +138,32 @@ class DataExtractor:
     
     def croppedData(self, grouped: bool = False):
         """
-        Split the S×S grid into N×N crops and assign every bbox to its crop.
-
-        Added columns
-        -------------
-        crop_id      : flat index 0 … N²-1
-        crop_row/col : 2-D crop position inside the N×N crop grid
-        cx_loc/cy_loc: cell indices inside the crop-local m×m grid,
-                       where m = S // N
-
-        Other regression targets (tx, ty, tw, th) stay unchanged.
+        Corrected splitter:
+        – N = cells-per-crop edge  (40)
+        – crops_per_dim = S // N  (3)
+        – cx_loc / cy_loc ∈ [0, N-1]  (0-39)
         """
-        # --- start from the global (S×S) label table ---
         df = self.normalizedData(grouped=False).copy()
 
-        S, N = config.S, config.N
+        S, N = config.S, config.N             # 120, 40
         if S % N:
-            raise ValueError(f"config.N ({N}) must evenly divide config.S ({S})")
-        m = S // N                                     # cells per crop edge
+            raise ValueError("config.N must evenly divide config.S")
 
-        # --- determine crop indices -------------------------------------------------
-        df['crop_row'] = (df['cy'] // m).astype(int)   # 0 … N-1
-        df['crop_col'] = (df['cx'] // m).astype(int)
-        df['crop_id']  = df['crop_row'] * N + df['crop_col']
+        crops_per_dim = S // N               # 3
+        # ------- which crop does the box belong to? -------------------------------
+        df["crop_row"] = (df["cy"] // N).astype(int)   # 0..2
+        df["crop_col"] = (df["cx"] // N).astype(int)   # 0..2
+        df["crop_id"]  = df["crop_row"] * crops_per_dim + df["crop_col"]
 
-        # --- cell coordinates inside the crop grid ----------------------------------
-        df['cx_loc'] = (df['cx'] % m).astype(int)
-        df['cy_loc'] = (df['cy'] % m).astype(int)
+        # ------- cell indices *inside* that 40×40 crop ----------------------------
+        df["cx_loc"] = (df["cx"] % N).astype(int)       # 0..39
+        df["cy_loc"] = (df["cy"] % N).astype(int)       # 0..39
 
-        # --- tidy column order (keep globals for reference) -------------------------
         col_order = [
-            'img_id', 'crop_id', 'cx_loc', 'cy_loc',    # crop-local info
-            'tx', 'ty', 'tw', 'th',                    # regression targets
-            'class_id', 'filename',                    # meta
-            'cx', 'cy', 'crop_row', 'crop_col'         # global refs (optional)
+            "img_id", "crop_id", "cx_loc", "cy_loc",
+            "tx", "ty", "tw", "th",
+            "class_id", "filename",
+            "cx", "cy", "crop_row", "crop_col"
         ]
         df = df[col_order]
 
