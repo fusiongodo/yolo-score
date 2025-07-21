@@ -2,6 +2,7 @@ import torch
 import os
 import json
 import pandas as pd
+from PIL import Image
 import config
 import torch.nn as nn
 import numpy as np
@@ -137,11 +138,8 @@ class DataExtractor:
         return df
     
     def croppedData(self, grouped: bool = False):
-        """
-        Corrected splitter:
-        – N = cells-per-crop edge  (40)
-        – crops_per_dim = S // N  (3)
-        – cx_loc / cy_loc ∈ [0, N-1]  (0-39)
+        """        
+            cx_loc / cy_loc ∈ [0, N-1]  (0-39)
         """
         df = self.normalizedData(grouped=False).copy()
 
@@ -231,3 +229,33 @@ def loadModel(filename: str, model: nn.Module, device: str = 'cpu') -> nn.Module
         print(f"[loadMode] No checkpoint found at {path} — starting fresh")
     return model
 
+
+
+
+
+def loadCrop(crop_id, gt_df, img_size):
+
+    if crop_id is not None:
+        crop_rows = gt_df[gt_df.crop_id == crop_id]
+        if crop_rows.empty:
+            valid = sorted(gt_df.crop_id.unique())
+            raise ValueError(f"crop_id {crop_id} not found for crop_id {crop_id}.\n"
+                            f"Valid crop_id values: {valid[:20]}…")
+        crop_row = int(crop_rows.crop_row.iloc[0])
+        crop_col = int(crop_rows.crop_col.iloc[0])
+
+    cell_px = img_size / config.S                
+    crop_px = config.N   * cell_px      
+    left_px  = int(round(crop_col * crop_px))
+    top_px   = int(round(crop_row * crop_px))
+    right_px = left_px + int(crop_px)
+    lower_px = top_px  + int(crop_px)
+
+
+
+    # ---------------------------------------------------------------- load page
+    img_path = os.path.join(config.img_dir, crop_rows.filename.iloc[0])
+    full_img = Image.open(img_path).convert("RGB").resize((img_size, img_size))
+    crop_img = full_img.crop((left_px, top_px, right_px, lower_px)).resize((img_size, img_size))
+
+    return crop_img
