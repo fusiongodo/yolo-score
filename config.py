@@ -10,11 +10,11 @@ slimpath = os.path.join(BASE_DIR, "ds2_dense", "ds2_dense", "deepscores_train_sl
 logdir   = os.path.join(BASE_DIR, "logs")
 
 S = 120
-A = 4
+A = 2
 C = 136
 N = 40
 
-RES = 240
+RES = 480
 
 ANCHORS = np.array([
     [0.02080085, 0.01517667],

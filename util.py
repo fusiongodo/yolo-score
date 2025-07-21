@@ -251,9 +251,9 @@ def _gt_box_from_row(row):
     return _rel2abs(cx, cy, w, h)
 
 
-def load_crop_image(img_path, crop_row, crop_col, full_size=config.RES, crop_size=config.RES):
+def load_crop_image(img_path, crop_row, crop_col):
     res_factor = config.S // config.N  # e.g., 3
-    effective_full_size = full_size * res_factor
+    effective_full_size = config.RES * res_factor
 
     cell_px = effective_full_size / config.S
     crop_px = config.N * cell_px
@@ -261,23 +261,41 @@ def load_crop_image(img_path, crop_row, crop_col, full_size=config.RES, crop_siz
     top_px = int(round(crop_row * crop_px))
     right_px = int(round((crop_col + 1) * crop_px))
     lower_px = int(round((crop_row + 1) * crop_px))
-    scale = crop_size / (right_px - left_px)
+    scale = config.RES / (right_px - left_px)
 
     full_img = Image.open(img_path).convert("RGB").resize((effective_full_size, effective_full_size))
-    crop_img = full_img.crop((left_px, top_px, right_px, lower_px)).resize((crop_size, crop_size))
+    crop_img = full_img.crop((left_px, top_px, right_px, lower_px)).resize((config.RES, config.RES))
+
+    crop_img = crop_img.convert("L") 
 
     return crop_img, left_px, top_px, scale, effective_full_size
 
-def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale):
-    draw = ImageDraw.Draw(crop_img, "RGBA")
+def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale, effective_full_size):
+
+    draw = ImageDraw.Draw(crop_img, "L")
     for _, row in crop_rows.iterrows():
         cx_full = (row.cx + row.tx) / config.S
         cy_full = (row.cy + row.ty) / config.S
         w_full = np.exp(row.tw) * config.ANCHORS[0][0]
         h_full = np.exp(row.th) * config.ANCHORS[0][1]
-        x0, y0, x1, y1 = _rel2abs(cx_full, cy_full, w_full, h_full)
+        x0, y0, x1, y1 = _rel2abs(cx_full, cy_full, w_full, h_full, side_size=effective_full_size)
         box = [(x0 - left_px) * scale,
             (y0 - top_px) * scale,
             (x1 - left_px) * scale,
             (y1 - top_px) * scale]
-        draw.rectangle(box, outline=(0, 255, 0, 200), width=2)
+        #draw.rectangle(box, outline=(0, 255, 0, 200), width=2)
+        draw.rectangle(box, outline=128, width=2)
+
+
+    # draw = ImageDraw.Draw(crop_img, "RGBA")
+    # for _, row in crop_rows.iterrows():
+    #     cx_full = (row.cx + row.tx) / config.S
+    #     cy_full = (row.cy + row.ty) / config.S
+    #     w_full = np.exp(row.tw) * config.ANCHORS[0][0]
+    #     h_full = np.exp(row.th) * config.ANCHORS[0][1]
+    #     x0, y0, x1, y1 = _rel2abs(cx_full, cy_full, w_full, h_full)
+    #     box = [(x0 - left_px) * scale,
+    #         (y0 - top_px) * scale,
+    #         (x1 - left_px) * scale,
+    #         (y1 - top_px) * scale]
+    #     draw.rectangle(box, outline=(0, 255, 0, 200), width=2)
