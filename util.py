@@ -2,7 +2,8 @@ import torch
 import os
 import json
 import pandas as pd
-from PIL import Image
+from PIL import Image, ImageDraw
+from importlib import reload
 import config
 import torch.nn as nn
 import numpy as np
@@ -21,6 +22,9 @@ import json
 import pandas as pd
 import config
 import numpy as np
+
+reload(config)
+
 
 
 class DataExtractor:
@@ -137,7 +141,7 @@ class DataExtractor:
         df.to_json(self.normalized_path, orient='records', indent=2)
         return df
     
-    def croppedData(self, grouped: bool = False):
+    def croppedData(self, grouped: bool = True):
         """        
             cx_loc / cy_loc ∈ [0, N-1]  (0-39)
         """
@@ -176,8 +180,12 @@ class DataExtractor:
 
         # --- optional hierarchical grouping ----------------------------------------
         if grouped:
-            df = df.groupby(['img_id', 'crop_id'])
 
+
+            df["crop_uid"] = df.groupby(['img_id', 'crop_id']).ngroup()
+
+        #remove staff line bboxes
+        df = df[df.class_id != 134]
         return df
 
 
@@ -229,33 +237,45 @@ def loadModel(filename: str, model: nn.Module, device: str = 'cpu') -> nn.Module
         print(f"[loadMode] No checkpoint found at {path} — starting fresh")
     return model
 
+def _rel2abs(cx, cy, w, h):
+    """Relative 0-1 centre/size  →  absolute pixel corners (896×896)."""
+    cx, cy, w, h = cx*config.RES, cy*config.RES, w*config.RES, h*config.RES
+    return [cx - w/2, cy - h/2, cx + w/2, cy + h/2]
 
 
+def _gt_box_from_row(row):
+    """Decode (cx,cy,tx,ty,tw,th) row to absolute pixel rectangle."""
+    cx = (row.cx + row.tx) / config.S
+    cy = (row.cy + row.ty) / config.S
+    w  = np.exp(row.tw) * config.ANCHORS[0][0]
+    h  = np.exp(row.th) * config.ANCHORS[0][1]
+    return _rel2abs(cx, cy, w, h)
 
 
-def loadCrop(crop_id, gt_df, img_size):
+def load_crop_image(img_path, crop_row, crop_col, full_size=config.RES, crop_size=config.RES):
+    cell_px = full_size / config.S
+    crop_px = config.N * cell_px
+    left_px = int(round(crop_col * crop_px))
+    top_px = int(round(crop_row * crop_px))
+    right_px = int(round((crop_col + 1) * crop_px))
+    lower_px = int(round((crop_row + 1) * crop_px))
+    scale = crop_size / (right_px - left_px)
 
-    if crop_id is not None:
-        crop_rows = gt_df[gt_df.crop_id == crop_id]
-        if crop_rows.empty:
-            valid = sorted(gt_df.crop_id.unique())
-            raise ValueError(f"crop_id {crop_id} not found for crop_id {crop_id}.\n"
-                            f"Valid crop_id values: {valid[:20]}…")
-        crop_row = int(crop_rows.crop_row.iloc[0])
-        crop_col = int(crop_rows.crop_col.iloc[0])
+    full_img = Image.open(img_path).convert("RGB").resize((full_size, full_size))
+    crop_img = full_img.crop((left_px, top_px, right_px, lower_px)).resize((crop_size, crop_size))
 
-    cell_px = img_size / config.S                
-    crop_px = config.N   * cell_px      
-    left_px  = int(round(crop_col * crop_px))
-    top_px   = int(round(crop_row * crop_px))
-    right_px = left_px + int(crop_px)
-    lower_px = top_px  + int(crop_px)
+    return crop_img, left_px, top_px, scale
 
-
-
-    # ---------------------------------------------------------------- load page
-    img_path = os.path.join(config.img_dir, crop_rows.filename.iloc[0])
-    full_img = Image.open(img_path).convert("RGB").resize((img_size, img_size))
-    crop_img = full_img.crop((left_px, top_px, right_px, lower_px)).resize((img_size, img_size))
-
-    return crop_img
+def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale):
+    draw = ImageDraw.Draw(crop_img, "RGBA")
+    for _, row in crop_rows.iterrows():
+        cx_full = (row.cx + row.tx) / config.S
+        cy_full = (row.cy + row.ty) / config.S
+        w_full = np.exp(row.tw) * config.ANCHORS[0][0]
+        h_full = np.exp(row.th) * config.ANCHORS[0][1]
+        x0, y0, x1, y1 = _rel2abs(cx_full, cy_full, w_full, h_full)
+        box = [(x0 - left_px) * scale,
+            (y0 - top_px) * scale,
+            (x1 - left_px) * scale,
+            (y1 - top_px) * scale]
+        draw.rectangle(box, outline=(0, 255, 0, 200), width=2)
