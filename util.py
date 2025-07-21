@@ -237,9 +237,8 @@ def loadModel(filename: str, model: nn.Module, device: str = 'cpu') -> nn.Module
         print(f"[loadMode] No checkpoint found at {path} — starting fresh")
     return model
 
-def _rel2abs(cx, cy, w, h):
-    """Relative 0-1 centre/size  →  absolute pixel corners (896×896)."""
-    cx, cy, w, h = cx*config.RES, cy*config.RES, w*config.RES, h*config.RES
+def _rel2abs(cx, cy, w, h, side_size=config.RES):
+    cx, cy, w, h = cx * side_size, cy * side_size, w * side_size, h * side_size
     return [cx - w/2, cy - h/2, cx + w/2, cy + h/2]
 
 
@@ -253,7 +252,10 @@ def _gt_box_from_row(row):
 
 
 def load_crop_image(img_path, crop_row, crop_col, full_size=config.RES, crop_size=config.RES):
-    cell_px = full_size / config.S
+    res_factor = config.S // config.N  # e.g., 3
+    effective_full_size = full_size * res_factor
+
+    cell_px = effective_full_size / config.S
     crop_px = config.N * cell_px
     left_px = int(round(crop_col * crop_px))
     top_px = int(round(crop_row * crop_px))
@@ -261,10 +263,10 @@ def load_crop_image(img_path, crop_row, crop_col, full_size=config.RES, crop_siz
     lower_px = int(round((crop_row + 1) * crop_px))
     scale = crop_size / (right_px - left_px)
 
-    full_img = Image.open(img_path).convert("RGB").resize((full_size, full_size))
+    full_img = Image.open(img_path).convert("RGB").resize((effective_full_size, effective_full_size))
     crop_img = full_img.crop((left_px, top_px, right_px, lower_px)).resize((crop_size, crop_size))
 
-    return crop_img, left_px, top_px, scale
+    return crop_img, left_px, top_px, scale, effective_full_size
 
 def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale):
     draw = ImageDraw.Draw(crop_img, "RGBA")
