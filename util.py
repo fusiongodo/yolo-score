@@ -299,3 +299,134 @@ def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale, effective_full_si
     #         (x1 - left_px) * scale,
     #         (y1 - top_px) * scale]
     #     draw.rectangle(box, outline=(0, 255, 0, 200), width=2)
+
+
+
+def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200),
+                             out_dir="evaluation_crops_from_dataset",
+                             name="crop.png"):
+    """
+    Renders the crop image with ground truth bounding boxes decoded from the target tensor.
+    
+    Args:
+        image (torch.Tensor): The crop image tensor (CHW, float32 0-1).
+        target (torch.Tensor): The target tensor (N, N, A, 5 + C).
+        colour (tuple): The color for the bounding boxes.
+        out_dir (str): Directory to save the rendered image.
+        name (str): Filename for the saved image.
+    
+    Returns:
+        PIL.Image: The rendered crop image with bounding boxes.
+    """
+    # Convert torch image (CHW float 0-1) to PIL (assuming image is square)
+    # Convert torch image to PIL (handle grayscale cases)
+    if image.dim() == 2:
+        # (H, W)
+        h, w = image.shape
+        if h != w:
+            raise ValueError("Image must be square.")
+        img_np = (image.cpu().numpy() * 255).astype(np.uint8)
+    elif image.dim() == 3 and image.shape[0] == 1:
+        # (1, H, W)
+        h, w = image.shape[1:]
+        if h != w:
+            raise ValueError("Image must be square.")
+        img_np = (image[0].cpu().numpy() * 255).astype(np.uint8)
+    else:
+        raise ValueError("Image must be (H,W) or (1,H,W) tensor for grayscale.")
+    
+    crop_img = Image.fromarray(img_np, mode='L')
+
+    # Draw setup
+    draw = ImageDraw.Draw(crop_img, "L")
+
+# Decode and draw boxes from target
+    # N, _, A, _ = target.shape
+    # for i in range(N):  # cy_loc rows
+    #     for j in range(N):  # cx_loc cols
+    #         for a in range(A):  # anchors
+    #             obj = target[i, j, a, 4].item()
+    #             if obj != 1.0:
+    #                 continue
+    #             tx = target[i, j, a, 0].item()
+    #             ty = target[i, j, a, 1].item()
+    #             tw = target[i, j, a, 2].item()
+    #             th = target[i, j, a, 3].item()
+                
+    #             # Relative coordinates in crop (0-1)
+    #             cx_rel = (j + tx) / N
+    #             cy_rel = (i + ty) / N
+    #             w_rel = np.exp(tw) * config.ANCHORS[a][0] * (config.S // config.N)
+    #             h_rel = np.exp(th) * config.ANCHORS[a][1] * (config.S // config.N)
+                
+    #             # Absolute pixel corners
+    #             x0, y0, x1, y1 = util._rel2abs(cx_rel, cy_rel, w_rel, h_rel)
+                
+    #             # Draw the box
+    #             draw.rectangle([x0, y0, x1, y1], outline=128, width=2)
+    # Parallelized box decoding
+    N, _, A, _ = target.shape
+    side_size = config.RES  # Assuming this is the side size (e.g., 224)
+
+    # Create meshgrid for i, j, a
+    i_grid, j_grid, a_grid = torch.meshgrid(
+        torch.arange(N, device=target.device),
+        torch.arange(N, device=target.device),
+        torch.arange(A, device=target.device),
+        indexing='ij'
+    )
+
+    # Flatten everything
+    flat_i = i_grid.reshape(-1)
+    flat_j = j_grid.reshape(-1)
+    flat_a = a_grid.reshape(-1)
+    flat_params = target[..., :5].reshape(-1, 5)  # (N*N*A, 5), where [:,4] is obj
+
+    # Mask for valid boxes
+    mask = flat_params[:, 4] == 1.0
+
+    if not mask.any():
+        # No boxes to draw
+        pass  # Proceed to save, etc.
+
+    # Extract valid components
+    valid_i = flat_i[mask]
+    valid_j = flat_j[mask]
+    valid_a = flat_a[mask]
+    tx = flat_params[mask, 0]
+    ty = flat_params[mask, 1]
+    tw = flat_params[mask, 2]
+    th = flat_params[mask, 3]
+
+    # Relative coordinates in crop (0-1)
+    cx_rel = (valid_j + tx) / N
+    cy_rel = (valid_i + ty) / N
+
+    # Anchors as tensor (assuming config.ANCHORS is list of lists/tuples, shape (A, 2))
+    anchors = torch.tensor(config.ANCHORS, device=target.device, dtype=torch.float32)  # (A, 2)
+
+    # Compute w_rel and h_rel
+    scale_factor = config.S / config.N  # Use float division
+    w_rel = torch.exp(tw) * anchors[valid_a, 0] * scale_factor
+    h_rel = torch.exp(th) * anchors[valid_a, 1] * scale_factor
+
+    # Absolute pixel corners (vectorized _rel2abs)
+    cx_abs = cx_rel * side_size
+    cy_abs = cy_rel * side_size
+    w_abs = w_rel * side_size
+    h_abs = h_rel * side_size
+    x0 = cx_abs - w_abs / 2
+    y0 = cy_abs - h_abs / 2
+    x1 = cx_abs + w_abs / 2
+    y1 = cy_abs + h_abs / 2
+
+# Now, draw in a loop (since PIL drawing isn't vectorized, but this is fast for typical num_boxes << N*N*A)
+    for k in range(len(x0)):
+        draw.rectangle([x0[k].item(), y0[k].item(), x1[k].item(), y1[k].item()], outline=128, width=2)
+
+    # Save and return
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, name)
+    crop_img.save(out_path)
+    print(f"[render_crop_from_dataset] saved → {out_path}")
+    return crop_img

@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import config as c
+from torchvision.models import resnet18
 
 
 
@@ -29,13 +30,13 @@ class YOLOv2Heavy(nn.Module):
 
         self.model = nn.Sequential(
 
-            #896x896x3
-            _ConvBlock(3, 16, 7, 1, 3),
+            #240x240x1 (config.RES = 240)
+            _ConvBlock(1, 8, 7, 1, 3),
             nn.MaxPool2d(2, 2),
-            #448x448x16
-            _ConvBlock(16, 32, 3, 1, 1),
+            #120x120x8
+            _ConvBlock(8, 16, 3, 1, 1),
             nn.MaxPool2d(2, 2),
-            #224x224x32
+            #60x60x16
             _ConvBlock(32, 48, 1, 1, 0),
             #224x224x24
             _ConvBlock(48, 64, 3, 1, 1),
@@ -79,54 +80,49 @@ class YOLOv2Heavy(nn.Module):
 
 
 
-class YOLOv2Tiny(nn.Module):
-    """YOLO v1 backbone + detection head (fully‑connected)."""
-    def __init__(self): #SxS Anzahl Grid cells, B Anzahl Anchors
+
+
+class YOLOResNet(nn.Module):
+    """ResNet18 backbone adapted for YOLO detection head."""
+    def __init__(self):
         super().__init__()
-        self.S, self.A, self.C = c.S, c.A, c.C
+        self.N = c.N  # 40, grid size for crop
+        self.A = c.A  # 2, number of anchors
+        self.C = c.C  # 135, number of classes
 
-        self.model = nn.Sequential(
-            #896x896x3
-            _ConvBlock(3, 8, 7, 1, 3),
-            nn.MaxPool2d(2, 2),
-            #448x448x16
-            _ConvBlock(8, 16, 3, 1, 1),
-            nn.MaxPool2d(2, 2),
-            #224x224x32
-            _ConvBlock(16, 24, 1, 1, 0),
-            #224x224x24
-            _ConvBlock(24, 48, 3, 1, 1),
-            #224x224x48
-            _ConvBlock(48, 48, 1, 1, 0),
-            #224x224x48
-            _ConvBlock(48, 96, 3, 1, 1),
-            #224x224x96
-            nn.MaxPool2d(2, 2),
-            #112x112x96
+        backbone = resnet18(weights=None)
+        # Adapt for grayscale input and adjust initial stride for desired downsampling
+        backbone.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=3, padding=3, bias=False)
 
-            # usually four times
-            *[nn.Sequential(
-                _ConvBlock(96, 48, 1, 1, 0),
-                _ConvBlock(48, 96, 3, 1, 1)
-            ) for _ in range(1)],
+        # Prevent further downsampling by setting strides to 1 in subsequent layers
+        for layer in [backbone.layer2, backbone.layer3, backbone.layer4]:
+            for block in layer:
+                if hasattr(block, 'conv1'):
+                    block.conv1.stride = (1, 1)
+                if hasattr(block, 'downsample') and block.downsample is not None:
+                    block.downsample[0].stride = (1, 1)
 
-            #112x112x96
-
-            _ConvBlock(96, 96, 1, 1, 0),
-            _ConvBlock(96, 128, 3, 1, 1),
-            #112x112x128
-
-            _ConvBlock(128, 128, 3, 1, 1),
-            _ConvBlock(128,  self.A * (5 + self.C), 1, 1, 0 ) #6 anchors
+        # Backbone up to the feature map
+        self.backbone = nn.Sequential(
+            backbone.conv1,
+            backbone.bn1,
+            backbone.relu,
+            backbone.maxpool,
+            backbone.layer1,
+            backbone.layer2,
+            backbone.layer3,
+            backbone.layer4
         )
 
+        # YOLO detection head: conv to desired output channels
+        num_features = 512  # Output channels from ResNet18 layer4
+        self.head = nn.Conv2d(num_features, self.A * (5 + self.C), kernel_size=1, stride=1, padding=0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.model(x)
-        N, _, S1, S2 = out.shape
-        assert S1 == self.S and S2 == self.S, "Grid mismatch"
-        # reshape to [N, S, S, B*5 + C]
-        out = out.view(N, self.A, 5 + self.C, self.S, self.S) \
-                 .permute(0, 3, 4, 1, 2)
+        features = self.backbone(x)
+        out = self.head(features)
+        N_batch, _, S1, S2 = out.shape
+        assert S1 == self.N and S2 == self.N, "Grid mismatch"
+        # Reshape to [N_batch, N, N, A, 5 + C]
+        out = out.view(N_batch, self.A, 5 + self.C, self.N, self.N).permute(0, 3, 4, 1, 2)
         return out
-
