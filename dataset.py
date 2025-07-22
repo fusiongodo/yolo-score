@@ -152,7 +152,26 @@ class CroppedDataset(Dataset):
 
         return image, target
     
-    def dummyTensor(self, choice="zero"):#zero, one, half
+
+    
+class CroppedDummyset(Dataset):
+    """
+    gt_df is already grouped by "crop_id"
+    """
+    def __init__(self, gt_df, img_dir = config.img_dir):
+        self.gt_df = gt_df
+        self.img_dir = img_dir
+        # Unique image IDs
+        if not eval:
+            self.crop_uids = gt_df['crop_uid'].unique()
+        if eval:
+            self.crop_uids = gt_df['crop_uid'].unique()[:192]
+
+    def __len__(self):
+        return len(self.crop_uids)
+    
+
+    def dummyTensor(self, choice):#zero, one, half
         shape = (config.N, config.N, config.A, 5 + config.C)
         target = torch.zeros(shape, dtype=torch.float32)
         if choice == 'one':
@@ -163,3 +182,43 @@ class CroppedDataset(Dataset):
         # 'zero' is already handled by initialization
         return target
 
+    def __getitem__(self, idx):
+        crop_uid = self.crop_uids[idx]
+        ann = self.gt_df[self.gt_df.crop_uid == crop_uid]
+        crop_row = int(ann.crop_row.iloc[0])
+        crop_col = int(ann.crop_col.iloc[0])
+
+        # Load Crop
+        img_path = os.path.join(self.img_dir, ann['filename'].iloc[0])
+        try:
+            crop_img, left_px, top_px, scale, effective_full_size = util.load_crop_image(img_path, crop_row, crop_col)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load image {img_path}: {e}")
+        arr = np.array(crop_img, dtype=np.float32) / 255.0
+        # HWC to CHW
+        image = torch.from_numpy(arr).permute(0, 1)
+
+        target = self.dummyTensor(choice = "one")
+
+        return image, target
+    
+
+
+
+
+from torch.utils.data import DataLoader
+import torch
+import config
+
+class DummyDataLoader(DataLoader):
+    def __init__(self, dummyset, choice="zero", **kwargs):
+        super().__init__(dummyset, **kwargs)
+        self.choice = choice
+        self.dummyset = dummyset
+
+    def __iter__(self):
+        for batch in super().__iter__():
+            images, _ = batch
+            dummy_target = self.dummyset.dummyTensor(self.choice)
+            targets = torch.stack([dummy_target.clone() for _ in range(len(images))])
+            yield images, targets

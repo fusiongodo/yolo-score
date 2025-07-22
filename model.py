@@ -5,6 +5,8 @@ import torch.nn.functional as F
 import numpy as np
 import config as c
 from torchvision.models import resnet18
+import loss as l
+import random
 
 
 
@@ -126,3 +128,21 @@ class YOLOResNet(nn.Module):
         # Reshape to [N_batch, N, N, A, 5 + C]
         out = out.view(N_batch, self.A, 5 + self.C, self.N, self.N).permute(0, 3, 4, 1, 2)
         return out
+    
+    def dummy_forward(self, batch_size: int, mode: str = 'random') -> torch.Tensor:
+        """
+        Generate dummy output tensor of shape [batch_size, N, N, A, 5 + C].
+        
+        Args:
+            batch_size (int): Number of samples in the batch.
+            mode (str): 'zero' for all zeros, 'one' for all ones, 'random' to choose randomly.
+        
+        Returns:
+            torch.Tensor: Dummy output tensor.
+        """
+        shape = (batch_size, self.N, self.N, self.A, 5 + self.C)
+        if mode == 'random':
+            mode = random.choice(['zero', 'one'])
+        if mode == 'one':
+            return torch.ones(shape, dtype=torch.float32)
+        return torch.zeros(shape, dtype=torch.float32)
