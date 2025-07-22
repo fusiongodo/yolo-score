@@ -287,18 +287,7 @@ def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale, effective_full_si
         draw.rectangle(box, outline=128, width=2)
 
 
-    # draw = ImageDraw.Draw(crop_img, "RGBA")
-    # for _, row in crop_rows.iterrows():
-    #     cx_full = (row.cx + row.tx) / config.S
-    #     cy_full = (row.cy + row.ty) / config.S
-    #     w_full = np.exp(row.tw) * config.ANCHORS[0][0]
-    #     h_full = np.exp(row.th) * config.ANCHORS[0][1]
-    #     x0, y0, x1, y1 = _rel2abs(cx_full, cy_full, w_full, h_full)
-    #     box = [(x0 - left_px) * scale,
-    #         (y0 - top_px) * scale,
-    #         (x1 - left_px) * scale,
-    #         (y1 - top_px) * scale]
-    #     draw.rectangle(box, outline=(0, 255, 0, 200), width=2)
+
 
 
 

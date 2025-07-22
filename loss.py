@@ -185,42 +185,10 @@ def _decode_predictions(pred, score_thresh=0.5):
     return outs
 
 
-def _compute_ap(rec, prec):
-    """11‑point interpolation (VOC 2007)"""
-    ap = 0.0
-    for t in torch.linspace(0,1,11):
-        if (rec>=t).any():
-            ap += prec[rec>=t].max()
-    return ap/11
 
 
-def _boxes_to_corners(box):
-    """(cx,cy,w,h) → (x1,y1,x2,y2) with same scale."""
-    x1 = box[..., 0] - box[..., 2] / 2
-    y1 = box[..., 1] - box[..., 3] / 2
-    x2 = box[..., 0] + box[..., 2] / 2
-    y2 = box[..., 1] + box[..., 3] / 2
-    return torch.stack((x1, y1, x2, y2), dim=-1)
 
-
-def _box_iou_matrix(boxes1, boxes2):
-    """Vectorised IoU for two sets of boxes in (cx,cy,w,h)."""
-    if boxes1.numel() == 0 or boxes2.numel() == 0:
-        return torch.zeros((boxes1.size(0), boxes2.size(0)), device=boxes1.device)
-    b1 = _boxes_to_corners(boxes1)  # (M,4)
-    b2 = _boxes_to_corners(boxes2)  # (N,4)
-    # broadcast corners
-    tl = torch.maximum(b1[:, None, :2], b2[None, :, :2])  # top‑left
-    br = torch.minimum(b1[:, None, 2:], b2[None, :, 2:])  # bottom‑right
-    wh = (br - tl).clamp(min=0)
-    inter = wh[..., 0] * wh[..., 1]
-    area1 = (b1[:, 2] - b1[:, 0]) * (b1[:, 3] - b1[:, 1])
-    area2 = (b2[:, 2] - b2[:, 0]) * (b2[:, 3] - b2[:, 1])
-    union = area1[:, None] + area2[None, :] - inter + 1e-9
-    return inter / union
-
-
-def average_precision(model: nn.Module, dataset, device='cpu', iou_thresh=0.5, score_thresh=0.5, max_batches: int | None = 3):
+def mean_average_precision(model: nn.Module, dataset, device='cpu', iou_thresh=0.5, score_thresh=0.5, max_batches: int | None = 3):
     """Compute mAP@IoU using at most *max_batches* batches (fast eval)."""
     loader = DataLoader(dataset, batch_size=2, shuffle=False, num_workers=4, pin_memory=True)
     model.eval(); model.to(device)
@@ -297,3 +265,159 @@ def average_precision(model: nn.Module, dataset, device='cpu', iou_thresh=0.5, s
     mAP = sum(APs)/len(APs) if APs else 0.0
     print(f"mAP@{iou_thresh}: {mAP:.4f}  (evaluated on {min(max_batches, len(loader)) if max_batches else len(loader)} batch(es))")
     return mAP
+
+
+
+
+def _compute_ap(rec, prec):
+    """11‑point interpolation (VOC 2007)"""
+    ap = 0.0
+    for t in torch.linspace(0,1,11):
+        if (rec>=t).any():
+            ap += prec[rec>=t].max()
+    return ap/11
+
+
+def _boxes_to_corners(box):
+    """(cx,cy,w,h) → (x1,y1,x2,y2) with same scale."""
+    x1 = box[..., 0] - box[..., 2] / 2
+    y1 = box[..., 1] - box[..., 3] / 2
+    x2 = box[..., 0] + box[..., 2] / 2
+    y2 = box[..., 1] + box[..., 3] / 2
+    return torch.stack((x1, y1, x2, y2), dim=-1)
+
+
+def _box_iou_matrix(boxes1, boxes2):
+    """Vectorised IoU for two sets of boxes in (cx,cy,w,h)."""
+    if boxes1.numel() == 0 or boxes2.numel() == 0:
+        return torch.zeros((boxes1.size(0), boxes2.size(0)), device=boxes1.device)
+    b1 = _boxes_to_corners(boxes1)  # (M,4)
+    b2 = _boxes_to_corners(boxes2)  # (N,4)
+    # broadcast corners
+    tl = torch.maximum(b1[:, None, :2], b2[None, :, :2])  # top‑left
+    br = torch.minimum(b1[:, None, 2:], b2[None, :, 2:])  # bottom‑right
+    wh = (br - tl).clamp(min=0)
+    inter = wh[..., 0] * wh[..., 1]
+    area1 = (b1[:, 2] - b1[:, 0]) * (b1[:, 3] - b1[:, 1])
+    area2 = (b2[:, 2] - b2[:, 0]) * (b2[:, 3] - b2[:, 1])
+    union = area1[:, None] + area2[None, :] - inter + 1e-9
+    return inter / union
+
+
+
+def unit_precision(pred, gt, device='cpu', iou_thresh=0.5, score_thresh=0.5):
+    pred = pred.to(device)
+    gt = gt.to(device)
+    N = config.N
+    A = config.A
+    C = config.C
+    S_over_N = config.S / config.N
+
+    # Decode GT
+    obj_gt = gt[..., 4] > score_thresh
+    if obj_gt.any():
+        obj_indices_gt = obj_gt.nonzero(as_tuple=False)  # (num_gt, 3) for i (cy), j (cx), a
+        i_gt = obj_indices_gt[:, 0]
+        j_gt = obj_indices_gt[:, 1]
+        a_gt = obj_indices_gt[:, 2]
+        tx_gt = gt[i_gt, j_gt, a_gt, 0]
+        ty_gt = gt[i_gt, j_gt, a_gt, 1]
+        tw_gt = gt[i_gt, j_gt, a_gt, 2]
+        th_gt = gt[i_gt, j_gt, a_gt, 3]
+        anchors = torch.tensor(config.ANCHORS, device=device)
+        anc_w_gt = anchors[a_gt, 0]
+        anc_h_gt = anchors[a_gt, 1]
+        cx_gt = (j_gt.float() + tx_gt) / N
+        cy_gt = (i_gt.float() + ty_gt) / N
+        w_gt = torch.exp(tw_gt) * anc_w_gt * S_over_N
+        h_gt = torch.exp(th_gt) * anc_h_gt * S_over_N
+        gboxes = torch.stack((cx_gt, cy_gt, w_gt, h_gt), dim=-1)
+        glabels = gt[i_gt, j_gt, a_gt, 5:].argmax(dim=-1)
+    else:
+        gboxes = torch.empty((0, 4), device=device)
+        glabels = torch.empty((0,), dtype=torch.long, device=device)
+
+    # Decode predictions (treat as GT-like: no activations)
+    i_grid, j_grid, a_grid = torch.meshgrid(
+        torch.arange(N, device=device),
+        torch.arange(N, device=device),
+        torch.arange(A, device=device),
+        indexing='ij'
+    )
+    flat_i = i_grid.reshape(-1)
+    flat_j = j_grid.reshape(-1)
+    flat_a = a_grid.reshape(-1)
+    flat_pred = pred.reshape(-1, 5 + C)
+    tx = flat_pred[:, 0]
+    ty = flat_pred[:, 1]
+    tw = flat_pred[:, 2]
+    th = flat_pred[:, 3]
+    obj = flat_pred[:, 4]
+    class_logits = flat_pred[:, 5:]
+    labels = class_logits.argmax(dim=-1)
+    scores = obj  # Use raw obj as score
+    mask = scores > score_thresh
+    if not mask.any():
+        p_boxes = torch.empty((0, 4), device=device)
+        p_scores = torch.empty((0,), device=device)
+        p_labels = torch.empty((0,), dtype=torch.long, device=device)
+    else:
+        valid_tx = tx[mask]
+        valid_ty = ty[mask]
+        valid_tw = tw[mask]
+        valid_th = th[mask]
+        valid_scores = scores[mask]
+        valid_labels = labels[mask]
+        valid_a = flat_a[mask]
+        valid_j = flat_j[mask]
+        valid_i = flat_i[mask]
+        anchors = torch.tensor(config.ANCHORS, device=device)
+        anc_w = anchors[valid_a, 0]
+        anc_h = anchors[valid_a, 1]
+        cx = (valid_j.float() + valid_tx) / N
+        cy = (valid_i.float() + valid_ty) / N
+        w = torch.exp(valid_tw) * anc_w * S_over_N
+        h = torch.exp(valid_th) * anc_h * S_over_N
+        p_boxes = torch.stack((cx, cy, w, h), dim=-1)
+        p_scores = valid_scores
+        p_labels = valid_labels
+
+    # Matching to compute TP and FP
+    TP = 0
+    FP = 0
+    total_gt_count = gboxes.size(0)
+    if total_gt_count == 0 and p_boxes.size(0) == 0:
+        return 1.0
+    if p_boxes.size(0) == 0 and total_gt_count > 0:
+        return 0.0
+    unique_classes = torch.unique(torch.cat((p_labels, glabels)))
+    for cls in unique_classes:
+        c = int(cls.item())
+        mask_pred = p_labels == c
+        if mask_pred.sum() == 0:
+            continue
+        p_boxes_c = p_boxes[mask_pred]
+        p_scores_c = p_scores[mask_pred]
+        order = torch.argsort(p_scores_c, descending=True)
+        p_boxes_c = p_boxes_c[order]
+        p_scores_c = p_scores_c[order]
+        mask_gt = glabels == c
+        g_boxes_c = gboxes[mask_gt]
+        if g_boxes_c.size(0) == 0:
+            FP += p_boxes_c.size(0)
+            continue
+        matched_gt = torch.zeros(g_boxes_c.size(0), dtype=torch.bool, device=device)
+        for k in range(p_boxes_c.size(0)):
+            box = p_boxes_c[k:k+1]
+            ious = _box_iou_matrix(box, g_boxes_c).squeeze(0)
+            ious[matched_gt] = -1.0  # Mask matched GTs
+            max_iou, idx = ious.max(0)
+            if max_iou >= iou_thresh:
+                TP += 1
+                matched_gt[idx] = True
+            else:
+                FP += 1
+
+    if TP + FP == 0:
+        return 0.0
+    return TP / (TP + FP)

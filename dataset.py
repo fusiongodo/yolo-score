@@ -6,6 +6,7 @@ from PIL import Image
 from importlib import reload
 import config
 import util
+import random
 
 reload(util)
 reload(config)
@@ -150,3 +151,15 @@ class CroppedDataset(Dataset):
                 target[i, j, a, 5 + cls] = 1.0
 
         return image, target
+    
+    def dummyTensor(self, choice="zero"):#zero, one, half
+        shape = (config.N, config.N, config.A, 5 + config.C)
+        target = torch.zeros(shape, dtype=torch.float32)
+        if choice == 'one':
+            target.fill_(1.0)
+        elif choice == 'half':
+            half = config.N // 2
+            target[:, :half, :, :] = 1.0  # Horizontal split along symmetry plane (top half 1s, bottom 0s; adjust as needed)
+        # 'zero' is already handled by initialization
+        return target
+
