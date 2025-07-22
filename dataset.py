@@ -171,16 +171,52 @@ class CroppedDummyset(Dataset):
         return len(self.crop_uids)
     
 
-    def dummyTensor(self, choice):#zero, one, half
-        shape = (config.N, config.N, config.A, 5 + config.C)
-        target = torch.zeros(shape, dtype=torch.float32)
-        if choice == 'one':
-            target.fill_(1.0)
-        elif choice == 'half':
-            half = config.N // 2
-            target[:, :half, :, :] = 1.0  # Horizontal split along symmetry plane (top half 1s, bottom 0s; adjust as needed)
-        # 'zero' is already handled by initialization
-        return target
+    def dummyTensor(self, choice: str = "zero", *, seed: int = 0) -> torch.Tensor:
+        """
+        Return a (N, N, A, 5+C) tensor with hand-crafted objectness patterns.
+
+        Choices
+        -------
+        zero           : all zeros  (already the default)
+        one            : all ones
+        half           : top half = 1
+        inverse_half   : bottom half = 1     (new)
+        vertical_half  : **left** half = 1   (fixed)
+        quarter        : top-left quarter = 1
+        checker        : checkerboard pattern (50 % coverage)
+        random25       : ~25 % cells = 1, deterministic via `seed`
+        """
+        N, A, C = config.N, config.A, config.C
+        tgt = torch.zeros((N, N, A, 5 + C), dtype=torch.float32)
+
+        if choice == "one":
+            tgt.fill_(1.0)
+
+        elif choice == "half":                        # top half
+            tgt[:, : N // 2, :, :] = 1.0
+
+        elif choice == "inverse_half":                # bottom half
+            tgt[:, N // 2 :, :, :] = 0.9
+
+        elif choice == "vertical_half":               # **left** half
+            tgt[: N // 2, :, :, :] = 1.0
+
+        elif choice == "quarter":                     # top-left quarter
+            q = N // 2
+            tgt[:q, :q, :, :] = 1.0
+
+        elif choice == "checker":                     # every second cell
+            tgt[::2, ::2, :, :] = 1.0
+            tgt[1::2, 1::2, :, :] = 1.0
+
+        elif choice == "random25":
+            rng = torch.Generator().manual_seed(seed)
+            mask = torch.rand((N, N), generator=rng) < 0.25
+            tgt[mask, :, :] = 1.0
+
+        # 'zero' does nothing (already zeros)
+        return tgt
+
 
     def __getitem__(self, idx):
         crop_uid = self.crop_uids[idx]

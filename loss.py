@@ -351,7 +351,49 @@ def unit_precision(pred, gt, device='cpu', iou_thresh=0.5, score_thresh=0.5, ret
         p_scores = valid_scores
         p_labels = valid_labels
 
-    if not return_stats:
+    # Matching to compute TP and FP
+    if return_stats:
+        TP_per = [[] for _ in range(C)]
+        FP_per = [[] for _ in range(C)]
+        Conf_per = [[] for _ in range(C)]
+        total_gt_per = [0] * C
+        for c in range(C):
+            total_gt_per[c] = (glabels == c).sum().item()
+        unique_classes = torch.unique(torch.cat((p_labels, glabels)))
+        for cls in unique_classes:
+            c = int(cls.item())
+            mask_pred = p_labels == c
+            if mask_pred.sum() == 0:
+                continue
+            p_boxes_c = p_boxes[mask_pred]
+            p_scores_c = p_scores[mask_pred]
+            order = torch.argsort(p_scores_c, descending=True)
+            p_boxes_c = p_boxes_c[order]
+            p_scores_c = p_scores_c[order]
+            mask_gt = glabels == c
+            g_boxes_c = gboxes[mask_gt]
+            if g_boxes_c.size(0) == 0:
+                for k in range(p_boxes_c.size(0)):
+                    TP_per[c].append(0)
+                    FP_per[c].append(1)
+                    Conf_per[c].append(p_scores_c[k].item())
+                continue
+            matched_gt = torch.zeros(g_boxes_c.size(0), dtype=torch.bool, device=device)
+            for k in range(p_boxes_c.size(0)):
+                box = p_boxes_c[k:k+1]
+                ious = _box_iou_matrix(box, g_boxes_c).squeeze(0)
+                ious[matched_gt] = -1.0
+                max_iou, idx = ious.max(0)
+                if max_iou >= iou_thresh:
+                    TP_per[c].append(1)
+                    FP_per[c].append(0)
+                    matched_gt[idx] = True
+                else:
+                    TP_per[c].append(0)
+                    FP_per[c].append(1)
+                Conf_per[c].append(p_scores_c[k].item())
+        return {'TP': TP_per, 'FP': FP_per, 'Conf': Conf_per, 'total_gt': total_gt_per}
+    else:
         TP = 0
         FP = 0
         total_gt_count = gboxes.size(0)
@@ -389,48 +431,3 @@ def unit_precision(pred, gt, device='cpu', iou_thresh=0.5, score_thresh=0.5, ret
         if TP + FP == 0:
             return 0.0
         return TP / (TP + FP)
-
-    # Return stats mode
-    TP_per = [[] for _ in range(C)]
-    FP_per = [[] for _ in range(C)]
-    Conf_per = [[] for _ in range(C)]
-    total_gt_per = [0] * C
-
-    for c in range(C):
-        total_gt_per[c] = (glabels == c).sum().item()
-
-    unique_classes = torch.unique(torch.cat((p_labels, glabels)))
-    for cls in unique_classes:
-        c = int(cls.item())
-        mask_pred = p_labels == c
-        if mask_pred.sum() == 0:
-            continue
-        p_boxes_c = p_boxes[mask_pred]
-        p_scores_c = p_scores[mask_pred]
-        order = torch.argsort(p_scores_c, descending=True)
-        p_boxes_c = p_boxes_c[order]
-        p_scores_c = p_scores_c[order]
-        mask_gt = glabels == c
-        g_boxes_c = gboxes[mask_gt]
-        if g_boxes_c.size(0) == 0:
-            for k in range(p_boxes_c.size(0)):
-                TP_per[c].append(0)
-                FP_per[c].append(1)
-                Conf_per[c].append(p_scores_c[k].item())
-            continue
-        matched_gt = torch.zeros(g_boxes_c.size(0), dtype=torch.bool, device=device)
-        for k in range(p_boxes_c.size(0)):
-            box = p_boxes_c[k:k+1]
-            ious = _box_iou_matrix(box, g_boxes_c).squeeze(0)
-            ious[matched_gt] = -1.0
-            max_iou, idx = ious.max(0)
-            if max_iou >= iou_thresh:
-                TP_per[c].append(1)
-                FP_per[c].append(0)
-                matched_gt[idx] = True
-            else:
-                TP_per[c].append(0)
-                FP_per[c].append(1)
-            Conf_per[c].append(p_scores_c[k].item())
-
-    return {'TP': TP_per, 'FP': FP_per, 'Conf': Conf_per, 'total_gt': total_gt_per}
