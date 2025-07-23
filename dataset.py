@@ -189,32 +189,52 @@ class CroppedDummyset(Dataset):
         N, A, C = config.N, config.A, config.C
         tgt = torch.zeros((N, N, A, 5 + C), dtype=torch.float32)
 
-        if choice == "one":
-            tgt.fill_(1.0)
+        def _fill_cell(t, i, j):
+            t[i, j, :, 4] = 1.0          # objectness
+            t[i, j, :, 0:2] = 0.5        # centre at cell-centre
+            t[i, j, :, 2:4] = -10.0      # log-w/h  →  exp(-10) ≈ 4.5e-5
+            t[i, j, :, 5] = 1.0          # class-0 one-hot
+        # ------------------------------------------------------------------ #
 
-        elif choice == "half":                        # top half
-            tgt[:, : N // 2, :, :] = 1.0
+        if choice == "one":                      # every cell
+            for i in range(N):
+                for j in range(N):
+                    _fill_cell(tgt, i, j)
 
-        elif choice == "inverse_half":                # bottom half
-            tgt[:, N // 2 :, :, :] = 0.9
+        elif choice == "half":                   # top half
+            for i in range(N // 2):
+                for j in range(N):
+                    _fill_cell(tgt, i, j)
 
-        elif choice == "vertical_half":               # **left** half
-            tgt[: N // 2, :, :, :] = 1.0
+        elif choice == "inverse_half":           # bottom half
+            for i in range(N // 2, N):
+                for j in range(N):
+                    _fill_cell(tgt, i, j)
 
-        elif choice == "quarter":                     # top-left quarter
-            q = N // 2
-            tgt[:q, :q, :, :] = 1.0
+        elif choice == "vertical_half":          # left half
+            for i in range(N):
+                for j in range(N // 2):
+                    _fill_cell(tgt, i, j)
 
-        elif choice == "checker":                     # every second cell
-            tgt[::2, ::2, :, :] = 1.0
-            tgt[1::2, 1::2, :, :] = 1.0
+        elif choice == "quarter":                # top-left quarter
+            for i in range(N // 2):
+                for j in range(N // 2):
+                    _fill_cell(tgt, i, j)
+
+        elif choice == "checker":                # every-other cell
+            for i in range(N):
+                for j in range(N):
+                    if (i + j) % 2 == 0:
+                        _fill_cell(tgt, i, j)
 
         elif choice == "random25":
-            rng = torch.Generator().manual_seed(seed)
-            mask = torch.rand((N, N), generator=rng) < 0.25
-            tgt[mask, :, :] = 1.0
+            g = torch.Generator().manual_seed(seed)
+            mask = torch.rand((N, N), generator=g) < 0.25
+            idx = mask.nonzero(as_tuple=False)
+            for i, j in idx:
+                _fill_cell(tgt, int(i), int(j))
 
-        # 'zero' does nothing (already zeros)
+        # 'zero' already all-zeros
         return tgt
 
 
