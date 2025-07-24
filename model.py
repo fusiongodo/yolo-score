@@ -97,7 +97,7 @@ class YOLOResNet(nn.Module):
         backbone.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=3, padding=3, bias=False)
 
         # Prevent further downsampling by setting strides to 1 in subsequent layers
-        for layer in [backbone.layer2, backbone.layer3, backbone.layer4]:
+        for layer in [backbone.layer2, backbone.layer3]:
             for block in layer:
                 if hasattr(block, 'conv1'):
                     block.conv1.stride = (1, 1)

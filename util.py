@@ -203,13 +203,13 @@ def loadModel(checkpoint_path,model, optimizer):
         print(f"loadmodel: path: {path} does not exist")
 
 
-def saveModel(checkpoint_path,model, optimizer):
-    path = os.path.join(save_dir, checkpoint_path)
-    torch.save({
-        'model': model.state_dict(),
-        'opt':   optimizer.state_dict()
-    }, path)
-    print(f"Checkpoint {checkpoint_path} saved.")
+# def saveModel(checkpoint_path,model, optimizer):
+#     path = os.path.join(save_dir, checkpoint_path)
+#     torch.save({
+#         'model': model.state_dict(),
+#         'opt':   optimizer.state_dict()
+#     }, path)
+#     print(f"Checkpoint {checkpoint_path} saved.")
 
 
 
@@ -329,31 +329,7 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200),
     # Draw setup
     draw = ImageDraw.Draw(crop_img, "L")
 
-# Decode and draw boxes from target
-    # N, _, A, _ = target.shape
-    # for i in range(N):  # cy_loc rows
-    #     for j in range(N):  # cx_loc cols
-    #         for a in range(A):  # anchors
-    #             obj = target[i, j, a, 4].item()
-    #             if obj != 1.0:
-    #                 continue
-    #             tx = target[i, j, a, 0].item()
-    #             ty = target[i, j, a, 1].item()
-    #             tw = target[i, j, a, 2].item()
-    #             th = target[i, j, a, 3].item()
-                
-    #             # Relative coordinates in crop (0-1)
-    #             cx_rel = (j + tx) / N
-    #             cy_rel = (i + ty) / N
-    #             w_rel = np.exp(tw) * config.ANCHORS[a][0] * (config.S // config.N)
-    #             h_rel = np.exp(th) * config.ANCHORS[a][1] * (config.S // config.N)
-                
-    #             # Absolute pixel corners
-    #             x0, y0, x1, y1 = util._rel2abs(cx_rel, cy_rel, w_rel, h_rel)
-                
-    #             # Draw the box
-    #             draw.rectangle([x0, y0, x1, y1], outline=128, width=2)
-    # Parallelized box decoding
+
     N, _, A, _ = target.shape
     side_size = config.RES  # Assuming this is the side size (e.g., 224)
 
