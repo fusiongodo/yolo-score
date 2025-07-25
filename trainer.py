@@ -7,6 +7,7 @@ import time
 from importlib import import_module
 from torch.utils.data import DataLoader
 import loss as l
+import eval
 import time
 import util
 from dataset import MyDataset, CroppedDataset
@@ -55,23 +56,28 @@ class Trainer:
 
     # ------------------------------------------------------------------
     def run(self):
+        counter = 0 
         steps_per_epoch = len(self.dataloader)
         for epoch in range(1, self.epochs + 1):
             epoch_totals = {k: 0.0 for k in ['total','l_xy','l_wh','l_obj','l_noobj','l_cls']}
             for imgs, targets in self.dataloader:
+                imgs = imgs.unsqueeze(1)
                 imgs, targets = imgs.to(self.device), targets.to(self.device)
                 self.opt.zero_grad()
                 loss, metrics = self.loss_fn(self.model(imgs), targets)
                 loss.backward(); self.opt.step()
+                counter += self.dataloader.batch_size
+                if counter // 2000 == 0:
+                    print("2000 crops processed")
+                    mAP = eval.average_precision(self.model, self.eval_dataset, device=self.device, n_samples=100)
+                    print(mAP)
+                    counter -= 2000
                 for k in epoch_totals:
                     epoch_totals[k] += metrics[k].item()
             # ----- mAP on eval subset -----
-            mAP = l.average_precision(self.model, self.eval_dataset, device=self.device, max_batches=48)
-            mAP_iou03 = l.average_precision(self.model, self.eval_dataset, device=self.device, iou_thresh=0.3, score_thresh=0.5, max_batches=48)
-            mAP_obj03 = l.average_precision(self.model, self.eval_dataset, device=self.device, iou_thresh=0.5, score_thresh=0.3, max_batches=48)
-            # epoch averages
+            mAP = eval.average_precision(self.model, self.eval_dataset, device=self.device, n_samples=100)
             avg = {k: epoch_totals[k] / steps_per_epoch for k in epoch_totals}
-            epoch_line = (f"Epoch {epoch} mAP:{mAP:e}, mAP_iou03: {mAP_iou03}, mAP_obj03: {mAP_obj03}" + ' '.join([f"{k}:{avg[k]:.4f}" for k in ['total','l_xy','l_wh','l_obj','l_noobj','l_cls']]))
+            epoch_line = (f"Epoch {epoch} mAP:{mAP:e}" + ' '.join([f"{k}:{avg[k]:.4f}" for k in ['total','l_xy','l_wh','l_obj','l_noobj','l_cls']]))
             self._log_epoch(epoch_line)
             # checkpointing
             if epoch % self.save_interval == 0:

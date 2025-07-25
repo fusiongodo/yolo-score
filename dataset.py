@@ -120,6 +120,10 @@ class CroppedDataset(Dataset):
         arr = np.array(crop_img, dtype=np.float32) / 255.0
         # HWC to CHW
         image = torch.from_numpy(arr).permute(0, 1)
+        
+
+
+        
 
         # Create target tensor using config values directly
         target = torch.zeros(
@@ -250,7 +254,6 @@ class CroppedDummyset(Dataset):
             crop_img, left_px, top_px, scale, effective_full_size = util.load_crop_image(img_path, crop_row, crop_col)
         except Exception as e:
             raise RuntimeError(f"Failed to load image {img_path}: {e}")
-        arr = np.array(crop_img, dtype=np.float32) / 255.0
         # HWC to CHW
         image = torch.from_numpy(arr).permute(0, 1)
 

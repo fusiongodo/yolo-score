@@ -72,6 +72,7 @@ def debug_pred_to_iou():
         print("m:",  m[cx,cy])
 
 def unit_precision(pred, tgt, iou, conf_thr=0.5):
+
     conf   = pred[...,4] >= conf_thr
     pred_c = pred[...,5:].argmax(-1)
     tgt_c  = tgt[...,5:].argmax(-1)
@@ -103,6 +104,20 @@ def logit_to_target(tensor):
     pred[..., 5:] = one_hot
     return pred
 
+#Todo: introduce randomness?
+def average_precision(model, eval_dataset, device, n_samples=100):
+    precisions = []
+    model = model.to(device)
+    model.eval()
+    for s in range(n_samples):
+        img, tgt = eval_dataset[s]
+        img = img.unsqueeze(0).unsqueeze(0).to(device) # 1, 1, H, W
+        tgt = tgt.to(device)
+        pred = model.forward(img).squeeze(0)
+        pred = logit_to_target(pred)
+        iou = pred_to_iou(pred, tgt)
+        precisions.append(unit_precision(pred, tgt, iou))
+    return sum(precisions) / len(precisions)
 
 
 

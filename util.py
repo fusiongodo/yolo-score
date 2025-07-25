@@ -324,10 +324,10 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200),
     else:
         raise ValueError("Image must be (H,W) or (1,H,W) tensor for grayscale.")
     
-    crop_img = Image.fromarray(img_np, mode='L')
+    crop_img = Image.fromarray(img_np, mode='L').convert("RGBA") #changed for colored boxes
 
     # Draw setup
-    draw = ImageDraw.Draw(crop_img, "L")
+    draw = ImageDraw.Draw(crop_img, "RGBA")  #changed for colored boxes
 
 
     N, _, A, _ = target.shape
@@ -348,7 +348,7 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200),
     flat_params = target[..., :5].reshape(-1, 5)  # (N*N*A, 5), where [:,4] is obj
 
     # Mask for valid boxes
-    mask = flat_params[:, 4] == 1.0
+    mask = flat_params[:, 4] >= 0.5
 
     if not mask.any():
         # No boxes to draw
@@ -387,7 +387,12 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200),
 
 # Now, draw in a loop (since PIL drawing isn't vectorized, but this is fast for typical num_boxes << N*N*A)
     for k in range(len(x0)):
-        draw.rectangle([x0[k].item(), y0[k].item(), x1[k].item(), y1[k].item()], outline=128, width=2)
+        #draw.rectangle([x0[k].item(), y0[k].item(), x1[k].item(), y1[k].item()], outline=128, width=2)
+        draw.rectangle(
+            [x0[k].item(), y0[k].item(), x1[k].item(), y1[k].item()],
+            outline=colour,  # Use provided color (e.g., green (0, 255, 0, 200) or red (255, 0, 0, 200))
+            width=2
+        )
 
     # Save and return
     os.makedirs(out_dir, exist_ok=True)
