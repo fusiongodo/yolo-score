@@ -90,6 +90,31 @@ def unit_precision(pred, tgt, iou, conf_thr=0.5):
     return (tp / denom).item() if denom > 0 else 0.0
 
 
+#for testing only
+def logit_to_target(tensor):
+    pred = tensor.clone()
+    
+    pred[..., [0, 1, 4]] = torch.sigmoid(pred[..., [0, 1, 4]])
+    argmax = torch.argmax(pred[..., 5:], dim=-1)
+
+    one_hot = torch.zeros_like(pred[..., 5:])
+    one_hot.scatter_(-1, argmax.unsqueeze(-1), 1.0)
+
+    pred[..., 5:] = one_hot
+    return pred
+
+
+
+
+
+
+#######################################################################
+#######################################################################
+#######################################################################
+###################### Debug unit_precision  ##########################
+#######################################################################
+#######################################################################
+#######################################################################
 
 import torch, config
 from math import isclose

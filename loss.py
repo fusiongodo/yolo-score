@@ -63,10 +63,10 @@ class YOLOv2Loss(nn.Module):
         device = pred.device
         N, S, _, A, _ = pred.shape
 
-        # ---------------- Split prediction & target tensors ------------
+        # ---------------- Split prediction & target tensors, apply sigmoid to to ------------
         def _split(t):
             tx, ty, tw, th, to = torch.split(t[..., :5], 1, dim=-1)
-            return tx.squeeze(-1), ty.squeeze(-1), tw.squeeze(-1), th.squeeze(-1), to.squeeze(-1), t[..., 5:]
+            return tx.squeeze(-1), ty.squeeze(-1), tw.squeeze(-1), th.squeeze(-1), torch.sigmoid(to.squeeze(-1)), t[..., 5:]
 
         p_tx, p_ty, p_tw, p_th, p_to, p_cls = _split(pred)
         g_tx, g_ty, g_tw, g_th, g_to, g_cls = _split(target)
@@ -87,7 +87,7 @@ class YOLOv2Loss(nn.Module):
         G = gt_boxes.view(N, -1, A, 4)
         mask = obj_mask.view(N, -1, A)             # (N, S², A)
 
-                # IoU between each GT box and the A predictions in its cell
+        # IoU between each GT box and the A predictions in its cell
         ious = _bbox_iou(P.unsqueeze(3), G.unsqueeze(2))  # (N,S²,A_pred,A_gt)
         # Mask out cells where there is no GT (objectness==0)
         mask_exp = mask.unsqueeze(2).expand_as(ious)      # (N,S²,A_pred,A_gt)
