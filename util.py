@@ -291,7 +291,7 @@ def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale, effective_full_si
 
 
 
-def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200),
+def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200), obj_thres = 0.5,
                              out_dir="evaluation_crops_from_dataset",
                              name="crop.png"):
     """
@@ -348,7 +348,7 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200),
     flat_params = target[..., :5].reshape(-1, 5)  # (N*N*A, 5), where [:,4] is obj
 
     # Mask for valid boxes
-    mask = flat_params[:, 4] >= 0.5
+    mask = flat_params[:, 4] >= obj_thres
 
     if not mask.any():
         # No boxes to draw

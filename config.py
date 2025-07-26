@@ -9,10 +9,10 @@ filepath = os.path.join(BASE_DIR, "ds2_dense", "ds2_dense", "deepscores_train.js
 slimpath = os.path.join(BASE_DIR, "ds2_dense", "ds2_dense", "deepscores_train_slim.json")
 logdir   = os.path.join(BASE_DIR, "logs")
 
-S = 120
+S = 30
 A = 2
 C = 136
-N = 40
+N = 10
 
 RES = 480
 

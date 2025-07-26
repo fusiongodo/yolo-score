@@ -49,8 +49,8 @@ class YOLOv2Loss(nn.Module):
     Matching step is vectorised over all ground‑truth boxes to avoid the
     quadruple‑nested Python loop.
     """
-
-    def __init__(self, l_xy=5.0, l_wh=5.0, l_obj=1.0, l_noobj=0.5, l_cls=1.0):
+                
+    def __init__(self, l_xy=5.0, l_wh=5.0, l_obj=1.0, l_noobj=0.5, l_cls=1.0): 
         super().__init__()
         self.l_xy = l_xy
         self.l_wh = l_wh
@@ -66,7 +66,7 @@ class YOLOv2Loss(nn.Module):
         # ---------------- Split prediction & target tensors, apply sigmoid to to ------------
         def _split(t):
             tx, ty, tw, th, to = torch.split(t[..., :5], 1, dim=-1)
-            return tx.squeeze(-1), ty.squeeze(-1), tw.squeeze(-1), th.squeeze(-1), torch.sigmoid(to.squeeze(-1)), t[..., 5:]
+            return tx.squeeze(-1), ty.squeeze(-1), tw.squeeze(-1), th.squeeze(-1), to.squeeze(-1), t[..., 5:]
 
         p_tx, p_ty, p_tw, p_th, p_to, p_cls = _split(pred)
         g_tx, g_ty, g_tw, g_th, g_to, g_cls = _split(target)
