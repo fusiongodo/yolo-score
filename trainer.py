@@ -37,7 +37,7 @@ class Trainer:
         self.verbose = verbose
 
 
-        self.eval_dataset = CroppedDataset(gt_df, config.img_dir, eval=True)
+        self.eval_dataset = CroppedDataset(gt_df,  mode = "val")
         self.eval_loader  = DataLoader(self.eval_dataset, batch_size=eval_batch_size,
                                        shuffle=False, num_workers=2, pin_memory=True)
         # --------------- logging ----------------
@@ -73,7 +73,7 @@ class Trainer:
                     print(mAP)
                     counter -= 2000
                 for k in epoch_totals:
-                    epoch_totals[k] += metrics[k].item()
+                    epoch_totals[k] += metrics[k]
             # ----- mAP on eval subset -----
             mAP = eval.average_precision(self.model, self.eval_dataset, device=self.device, n_samples=100)
             avg = {k: epoch_totals[k] / steps_per_epoch for k in epoch_totals}

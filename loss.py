@@ -132,14 +132,16 @@ class YOLOv2Loss(nn.Module):
 
         total = (loss_xy + loss_wh + loss_obj + loss_noobj + loss_cls) / N
         breakdown = {
-            'total': total.detach(),
-            'l_xy': loss_xy.detach() / N,
-            'l_wh': loss_wh.detach() / N,
-            'l_obj': loss_obj.detach() / N,
-            'l_noobj': loss_noobj.detach() / N,
-            'l_cls': loss_cls.detach() / N,
+            'total': (total.detach().item()),
+            'l_xy': (loss_xy.detach().item() / N),
+            'l_wh': (loss_wh.detach().item() / N),
+            'l_obj': (loss_obj.detach().item() / N),
+            'l_noobj': (loss_noobj.detach().item() / N),
+            'l_cls': (loss_cls.detach().item() / N),
         }
+
         return total, breakdown
+
     
 
 
