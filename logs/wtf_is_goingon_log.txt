@@ -1,0 +1,4 @@
+# step total l_xy l_wh l_obj l_noobj l_cls mAP
+Epoch 1 mAP:7.261558e-03total:218.0803 l_xy:17.2000 l_wh:103.6797 l_obj:4.6920 l_noobj:10.1687 l_cls:82.3399
+Epoch 2 mAP:1.418935e-02total:153.4492 l_xy:12.4425 l_wh:73.6603 l_obj:2.9513 l_noobj:5.4712 l_cls:58.9238
+Epoch 3 mAP:2.314594e-02total:125.0621 l_xy:11.0076 l_wh:59.2666 l_obj:2.4245 l_noobj:4.4701 l_cls:47.8933
