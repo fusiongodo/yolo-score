@@ -81,8 +81,9 @@ class Trainer:
         self.model.eval()
         #(image, target, colour=(0, 255, 0, 200), obj_thres = 0.5, out_dir="evaluation_crops_from_dataset", name="crop.png"):
         for i in range(20):
+            idx = i * 45
             try:
-                image, target = self.eval_dataset[i]
+                image, target = self.eval_dataset[idx]
                 image, target = image.to("cuda"), target.to("cuda")
             except Exception:
                 continue
@@ -115,8 +116,10 @@ class Trainer:
                 self.index_counter += self.train_loader.batch_size
                 self.lossRecord.addLossDictionary(loss_dict)
 
-                if self.index_counter > 100:
-                    self.visualize()
+                if switch_debug:
+                    if self.index_counter > 100:
+                        self.visualize()
+                        switch_debug = False
                         
 
             self.addRecord(epoch)

@@ -143,7 +143,7 @@ class ModelSeries:
         if(os.path.exists(self.series_dir)):
             try:
                 self.loadJsonData()
-                pdis.display(pdis.HTML(self.records.to_html()))
+                pdis.display(pdis.HTML(self.records.iloc[-5:].to_html()))
             except Exception:
                 print("ModelSeries: loadjsonData() Error")
             
@@ -152,7 +152,7 @@ class ModelSeries:
                     self.model = self.loadLatestCheckpoint(self.model)
                 except Exception:
                     print("Modelseries: loadLastCheckpoint Error")
-                    
+
 
 
     def addRecord(self, newRecord):
