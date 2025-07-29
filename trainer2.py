@@ -18,7 +18,7 @@ import util
 
 class Trainer:
 
-    def __init__(self, modelseries, learn_config : LearnConfig, epochs, batch_size = 16, num_workers = 14, rec_rate = 0.25, checkpoint_rate = 1):
+    def __init__(self, modelseries, learn_config : LearnConfig, epochs, checkpoint_rate, num_workers, batch_size ):
         
         # --------------- core ----------------
         self.model = modelseries.model.to("cuda")
@@ -50,7 +50,6 @@ class Trainer:
         
         self.rec_counter = 0 
         self.index_counter = 0
-        self.rec_interval = len(self.train_dataset) * rec_rate
         self.lossRecord = LossRecord()
 
         
@@ -79,7 +78,27 @@ class Trainer:
         self.modelseries.saveCheckpoint(self.model)
 
     def visualize(self):
+        self.model.eval()
+        #(image, target, colour=(0, 255, 0, 200), obj_thres = 0.5, out_dir="evaluation_crops_from_dataset", name="crop.png"):
+        for i in range(20):
+            try:
+                image, target = self.eval_dataset[i]
+                image, target = image.to("cuda"), target.to("cuda")
+            except Exception:
+                continue
+            image = image.unsqueeze(0)  # [1, H, W]
 
+            with torch.no_grad():
+                pred = self.model(image.unsqueeze(0))  # [1, 1, H, W] -> model -> [1, N, N, A, 5+C]
+                pred = pred.squeeze(0)  # [N, N, A, 5+C]
+
+            pred = eval.logit_to_target(pred)
+
+            iou = eval.pred_to_iou(pred, target)
+            mAP = f"{eval.unit_precision(pred, target, iou):.4f}"
+            dir = os.path.join(self.modelseries.series_dir, "predictions", f"{self.modelseries.getEpoch()}")
+            util.render_crop_from_dataset(image, pred, out_dir = dir, name = f"crop_{i}_{mAP}.png")
+        self.model.train()
 
     def run(self, num_workers = 0):
         switch_debug = True
@@ -95,12 +114,11 @@ class Trainer:
                 self.rec_counter += self.train_loader.batch_size
                 self.index_counter += self.train_loader.batch_size
                 self.lossRecord.addLossDictionary(loss_dict)
+
+                if self.index_counter > 100:
+                    self.visualize()
                         
 
-              #  if self.rec_counter > self.rec_interval:
-               #     left_in_the_tank = len(self.train_dataset) - self.index_counter
-                #    if (left_in_the_tank / self.rec_interval) >= 1.5:
-                 #       self.addRecord(epoch)
             self.addRecord(epoch)
             if((epoch - self.start_epoch + 1) % self.checkpoint_rate == 0):
                 print(f"epoch {epoch - self.start_epoch}/{epoch} checkpoint added at checkpoint_rate{self.checkpoint_rate}")

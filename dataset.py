@@ -29,11 +29,11 @@ class CroppedDataset(Dataset):
         self.crop_uids = gt_df['crop_uid'].unique()
         n = len(self.crop_uids)
         n_train, n_val, n_test = int(0.8 * n), int(0.1 * n), int(0.1 * n)
-        if type == "train":
+        if mode == "train":
             self.crop_uids = self.crop_uids[:n_train]
-        elif type == "val":
+        elif mode == "val":
             self.crop_uids = self.crop_uids[n_train : (n_train + n_val)]
-        elif type == "test":
+        elif mode == "test":
             self.crop_uids = self.crop_uids[(n_train + n_val) : ]
 
     def __len__(self):
@@ -51,6 +51,7 @@ class CroppedDataset(Dataset):
             crop_img, left_px, top_px, scale, effective_full_size = util.load_crop_image(img_path, crop_row, crop_col)
         except Exception as e:
             raise RuntimeError(f"Failed to load image {img_path}: {e}")
+            
         arr = np.array(crop_img, dtype=np.float32) / 255.0
         # HWC to CHW
         image = torch.from_numpy(arr).permute(0, 1)

@@ -4,6 +4,7 @@ import os
 import model as m
 import util
 import json
+import IPython.display as pdis
 from importlib import reload
 reload(util)
 reload(c)
@@ -140,21 +141,28 @@ class ModelSeries:
         }
         self.records = pd.DataFrame(columns = columns).astype(dtypes)
         if(os.path.exists(self.series_dir)):
-            self.loadJsonData()
+            try:
+                self.loadJsonData()
+                pdis.display(pdis.HTML(self.records.to_html()))
+            except Exception:
+                print("ModelSeries: loadjsonData() Error")
+            
             if mode == "training":
-                self.model = self.loadLatestCheckpoint(self.model)
+                try:
+                    self.model = self.loadLatestCheckpoint(self.model)
+                except Exception:
+                    print("Modelseries: loadLastCheckpoint Error")
+                    
 
 
     def addRecord(self, newRecord):
         newRecord.checkpoint_idx = self.checkpoint
-        print(f"ModelSeries debug: addRecord(): newRecord: {newRecord}")
         self.records = pd.concat([self.records, pd.DataFrame([newRecord.toDict()])], ignore_index = True)
         self.saveJsonData()
 
     def getEpoch(self):
         try:
             epoch = self.records.iloc[-1]["epoch"]
-            print(f"debug ModelSeries getEpoch() type(epoch): {type(epoch)}")
             return int(epoch)
         except IndexError:
             return 0
