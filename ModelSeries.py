@@ -154,7 +154,6 @@ class ModelSeries:
     def getEpoch(self):
         try:
             epoch = self.records.iloc[-1]["epoch"]
-            print(f"debug ModelSeries getEpoch() dtypes: {self.records.dtypes}")
             print(f"debug ModelSeries getEpoch() type(epoch): {type(epoch)}")
             return int(epoch)
         except IndexError:
@@ -189,8 +188,6 @@ class ModelSeries:
         self.N = data["N"]
         self.A = data["A"]
         self.RES = data["RES"]
-        print("print_data[records]:")
-        print(data["records"])
         self.records = pd.DataFrame(data["records"])
         
         checkpoint_idx = self.records.iloc[-1]["checkpoint_idx"] #assume pandas dataframe is still sorted after main index

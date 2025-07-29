@@ -1,0 +1,1 @@
+epoch 0 - 5 mit einer lr von 1e-4. sieht man auch im dataframe.

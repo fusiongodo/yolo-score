@@ -10,7 +10,7 @@ import loss as l
 import eval
 import time
 import util
-from dataset import MyDataset, CroppedDataset
+from dataset import CroppedDataset
 from ModelSeries import LossRecord, LearnConfig, Record, ModelSeries
 import config as c
 import util
@@ -18,7 +18,7 @@ import util
 
 class Trainer:
 
-    def __init__(self, modelseries, learn_config : LearnConfig, epochs, batch_size = 8, num_workers = 0, rec_rate = 0.25, checkpoint_rate = 1):
+    def __init__(self, modelseries, learn_config : LearnConfig, epochs, batch_size = 16, num_workers = 14, rec_rate = 0.25, checkpoint_rate = 1):
         
         # --------------- core ----------------
         self.model = modelseries.model.to("cuda")
@@ -41,8 +41,8 @@ class Trainer:
         de = util.DataExtractor()
         gt_df = de.croppedData()
    
-        self.eval_dataset = CroppedDataset(gt_df, type = "val")
-        self.train_dataset = CroppedDataset(gt_df, type = "train")
+        self.eval_dataset = CroppedDataset(gt_df, mode = "val")
+        self.train_dataset = CroppedDataset(gt_df, mode = "train")
         self.eval_loader  = DataLoader(self.eval_dataset, batch_size=self.batch_size,
                                        shuffle=False, num_workers=num_workers, pin_memory=True)
         self.train_loader = DataLoader(self.train_dataset, batch_size = self.batch_size, 
@@ -78,6 +78,8 @@ class Trainer:
         self.modelseries.saveJsonData()
         self.modelseries.saveCheckpoint(self.model)
 
+    def visualize(self):
+
 
     def run(self, num_workers = 0):
         switch_debug = True
@@ -95,10 +97,10 @@ class Trainer:
                 self.lossRecord.addLossDictionary(loss_dict)
                         
 
-                if self.rec_counter > self.rec_interval:
-                    left_in_the_tank = len(self.train_dataset) - self.index_counter
-                    if (left_in_the_tank / self.rec_interval) >= 1.5:
-                        self.addRecord(epoch)
+              #  if self.rec_counter > self.rec_interval:
+               #     left_in_the_tank = len(self.train_dataset) - self.index_counter
+                #    if (left_in_the_tank / self.rec_interval) >= 1.5:
+                 #       self.addRecord(epoch)
             self.addRecord(epoch)
             if((epoch - self.start_epoch + 1) % self.checkpoint_rate == 0):
                 print(f"epoch {epoch - self.start_epoch}/{epoch} checkpoint added at checkpoint_rate{self.checkpoint_rate}")
