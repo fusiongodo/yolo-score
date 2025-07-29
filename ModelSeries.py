@@ -109,16 +109,18 @@ class Record:
         }
 
 class ModelSeries:
-    def __init__(self, name, model = m.YOLOResNet(), model_descr = "not provided", mode = "training"):
+    def __init__(self, name, model = m.YOLOResNet(), model_descr = "not provided", mode = ""):
         self.name = name
         self.model = model
         self.model_descr = model_descr#nur bei erstmaligem erstellen nötig
         self.series_dir = os.path.join(c.models, self.name)
+        #self.series_dir = os.path.join(c.models, f"{self.S}@{self.N}@{self.A}@{self.RES}", self.name)
         self.S = c.S
         self.N = c.N
         self.A = c.A
         self.RES = c.RES
         self.checkpoint = 0
+        self.mode = mode
         columns = "checkpoint_idx, n_crops, epoch, mAP, c_lr, c_xy, c_wh, c_obj, c_noobj, c_cls, l_total, l_xy, l_wh, l_obj, l_noobj, l_cls".split(", ")
         # Define data types for each column
         dtypes = {
@@ -143,7 +145,10 @@ class ModelSeries:
         if(os.path.exists(self.series_dir)):
             try:
                 self.loadJsonData()
-                pdis.display(pdis.HTML(self.records.iloc[-5:].to_html()))
+                print("ModelSeries: loadJsonData()")
+                if mode == "profiling":
+                    pdis.display(pdis.HTML(self.records.iloc[-5:].to_html()))
+                    
             except Exception:
                 print("ModelSeries: loadjsonData() Error")
             

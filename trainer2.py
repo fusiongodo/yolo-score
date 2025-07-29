@@ -66,7 +66,12 @@ class Trainer:
         assert c.RES == self.modelseries.RES, "config.RES unequal to ModelSeries RES parameter"
 
     def addRecord(self, epoch):
-        mAP = eval.average_precision(self.model, self.eval_dataset, device=self.device, n_samples=10)
+        start = time.time()
+        mAP = eval.average_precision(self.model, self.eval_dataset, device=self.device, n_samples=100)
+        end = time.time()
+        
+        print(f"Elapsed: {end - start:.4f} seconds")
+        
         r = Record(self.rec_counter, epoch, mAP, self.learn_config, self.lossRecord)
         self.modelseries.addRecord(r)
         self.lossRecord = LossRecord()
@@ -81,9 +86,9 @@ class Trainer:
         self.model.eval()
         #(image, target, colour=(0, 255, 0, 200), obj_thres = 0.5, out_dir="evaluation_crops_from_dataset", name="crop.png"):
         for i in range(20):
-            idx = i * 45
+            idx = i * 200
             try:
-                image, target = self.eval_dataset[idx]
+                image, target = self.eval_dataset[idx % len(self.eval_dataset)]
                 image, target = image.to("cuda"), target.to("cuda")
             except Exception:
                 continue
@@ -100,11 +105,13 @@ class Trainer:
             dir = os.path.join(self.modelseries.series_dir, "predictions", f"{self.modelseries.getEpoch()}")
             util.render_crop_from_dataset(image, pred, out_dir = dir, name = f"crop_{i}_{mAP}.png")
         self.model.train()
+        print(f"trainer2.visualize() epoch: {self.current_epoch}")
 
     def run(self, num_workers = 0):
         switch_debug = True
         for epoch in range(self.start_epoch, self.start_epoch + self.epochs):
             self.current_epoch = epoch # needed for keyboardInterrupt
+            print(f"trainer.run(): Epoch {self.current_epoch}")
             for imgs, targets in self.train_loader:
                 imgs = imgs.unsqueeze(1) #in dataset verlegen?
                 imgs, targets = imgs.to(self.device), targets.to(self.device)
@@ -116,13 +123,11 @@ class Trainer:
                 self.index_counter += self.train_loader.batch_size
                 self.lossRecord.addLossDictionary(loss_dict)
 
-                if switch_debug:
-                    if self.index_counter > 100:
-                        self.visualize()
-                        switch_debug = False
-                        
 
+                        
+            
             self.addRecord(epoch)
+            self.visualize()
             if((epoch - self.start_epoch + 1) % self.checkpoint_rate == 0):
                 print(f"epoch {epoch - self.start_epoch}/{epoch} checkpoint added at checkpoint_rate{self.checkpoint_rate}")
                 self.modelseries.addCheckpoint(self.model)

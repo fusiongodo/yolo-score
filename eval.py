@@ -110,7 +110,7 @@ def average_precision(model, eval_dataset, device, n_samples=100):
     model = model.to(device)
     model.eval()
     for s in range(n_samples):
-        img, tgt = eval_dataset[s]
+        img, tgt = eval_dataset[(s * 20) % len(eval_dataset)]
         img = img.unsqueeze(0).unsqueeze(0).to(device) # 1, 1, H, W
         tgt = tgt.to(device)
         pred = model.forward(img).squeeze(0)

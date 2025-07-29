@@ -626,5 +626,5 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200), obj_thres =
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, name)
     crop_img.save(out_path)
-    print(f"[render_crop_from_dataset] saved → {out_path}")
+    #print(f"[render_crop_from_dataset] saved → {out_path}")
     return crop_img
