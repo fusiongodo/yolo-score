@@ -16,6 +16,12 @@ import config as c
 import util
 
 
+
+
+
+
+
+
 class Trainer:
 
     def __init__(self, modelseries, learn_config : LearnConfig, epochs, checkpoint_rate, num_workers, batch_size ):
@@ -43,6 +49,8 @@ class Trainer:
    
         self.eval_dataset = CroppedDataset(gt_df, mode = "val")
         self.train_dataset = CroppedDataset(gt_df, mode = "train")
+   
+       
         self.eval_loader  = DataLoader(self.eval_dataset, batch_size=self.batch_size,
                                        shuffle=False, num_workers=num_workers, pin_memory=True)
         self.train_loader = DataLoader(self.train_dataset, batch_size = self.batch_size, 
@@ -54,6 +62,7 @@ class Trainer:
 
         
         self.epochs = epochs
+        self.n_epochs = epochs
         self.start_epoch = self.modelseries.getEpoch()
         self.current_epoch = None
 
@@ -105,12 +114,12 @@ class Trainer:
             dir = os.path.join(self.modelseries.series_dir, "predictions", f"{self.modelseries.getEpoch()}")
             util.render_crop_from_dataset(image, pred, out_dir = dir, name = f"crop_{i}_{mAP}.png")
         self.model.train()
-        print(f"trainer2.visualize() epoch: {self.current_epoch}")
 
     def run(self, num_workers = 0):
         switch_debug = True
+        
         for epoch in range(self.start_epoch, self.start_epoch + self.epochs):
-            self.current_epoch = epoch # needed for keyboardInterrupt
+            self.current_epoch, start = epoch, time.time() # needed for keyboardInterrupt
             print(f"trainer.run(): Epoch {self.current_epoch}")
             for imgs, targets in self.train_loader:
                 imgs = imgs.unsqueeze(1) #in dataset verlegen?
@@ -122,18 +131,24 @@ class Trainer:
                 self.rec_counter += self.train_loader.batch_size
                 self.index_counter += self.train_loader.batch_size
                 self.lossRecord.addLossDictionary(loss_dict)
-
+            if switch_debug:
+                self.modelseries.addCheckpoint(self.model)
+                print("debug: addCheckpoint()")
+                switch_debug = False
+                
 
                         
-            
+            end = time.time()
+            print(f"Epoch duration without mAP and prediction rendering: {end - start:.4f} seconds")
             self.addRecord(epoch)
             self.visualize()
             if((epoch - self.start_epoch + 1) % self.checkpoint_rate == 0):
-                print(f"epoch {epoch - self.start_epoch}/{epoch} checkpoint added at checkpoint_rate{self.checkpoint_rate}")
+                print(f"epoch {epoch}/{self.n_epochs + self.start_epoch} checkpoint added at checkpoint_rate{self.checkpoint_rate}")
                 self.modelseries.addCheckpoint(self.model)
             
         #keep current checkpoint, overwrite current model weights
-        self.modelseries.saveCheckpoint(self.model)
+        self.modelseries.addCheckpoint(self.model)
+
 
             
  

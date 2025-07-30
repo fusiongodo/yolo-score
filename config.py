@@ -11,10 +11,10 @@ logdir   = os.path.join(BASE_DIR, "logs")
 checkpoints = os.path.join(BASE_DIR, "checkpoints")
 models = os.path.join(BASE_DIR, "models")
 
-S = 30
+S = 60
 A = 2
 C = 136
-N = 10
+N = 20
 
 RES = 480
 

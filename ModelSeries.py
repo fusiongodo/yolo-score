@@ -113,12 +113,12 @@ class ModelSeries:
         self.name = name
         self.model = model
         self.model_descr = model_descr#nur bei erstmaligem erstellen nötig
-        self.series_dir = os.path.join(c.models, self.name)
-        #self.series_dir = os.path.join(c.models, f"{self.S}@{self.N}@{self.A}@{self.RES}", self.name)
+        #self.series_dir = os.path.join(c.models, self.name)
         self.S = c.S
         self.N = c.N
         self.A = c.A
         self.RES = c.RES
+        self.series_dir = os.path.join(c.models, f"{self.S}@{self.N}@{self.A}@{self.RES}", self.name)
         self.checkpoint = 0
         self.mode = mode
         columns = "checkpoint_idx, n_crops, epoch, mAP, c_lr, c_xy, c_wh, c_obj, c_noobj, c_cls, l_total, l_xy, l_wh, l_obj, l_noobj, l_cls".split(", ")
@@ -173,13 +173,15 @@ class ModelSeries:
             return 0
     
     def addCheckpoint(self, model):
-        checkpoint_idx = self.records.iloc[-1]["checkpoint_idx"]
-        self.checkpoint = checkpoint_idx + 1
-        self.saveCheckpoint(model)
+        try:
+            epoch_idx = int(self.records.iloc[-1]["epoch"])
+        except Exception:
+            epoch_idx = 0
+        #self.checkpoint = checkpoint_idx + 1
+        self.saveCheckpoint(model, epoch_idx)
 
-    def saveCheckpoint(self, model):
-        checkpoint_idx = int(self.records.iloc[-1]["checkpoint_idx"])
-        filename = f"{checkpoint_idx}.pth"
+    def saveCheckpoint(self, model, epoch_idx):
+        filename = f"{epoch_idx}.pth"
         dir = os.path.join(self.series_dir, "checkpoints")
         os.makedirs(dir, exist_ok=True)
         util.saveModel(filename, model, dir)
@@ -187,7 +189,7 @@ class ModelSeries:
 
     def loadLatestCheckpoint(self, model):
         dir_path = os.path.join(self.series_dir, "checkpoints")
-        checkpoint_id = max([int(f.split(".")[0]) for f in os.listdir(dir_path)])
+        checkpoint_id = int(max([int(f.split(".")[0]) for f in os.listdir(dir_path)]))
         filename =  f"{checkpoint_id}.pth"
         return util.loadModel(filename, model, dir = dir_path) 
 

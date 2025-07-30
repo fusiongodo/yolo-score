@@ -16,6 +16,23 @@ reload(config)
 
 
 
+import os
+import numpy as np
+import torch
+from torch.utils.data import Dataset
+from PIL import Image
+from importlib import reload
+import config
+import util
+import random
+
+reload(util)
+reload(config)
+
+
+
+
+
 class CroppedDataset(Dataset):
     """
     gt_df is already grouped by "crop_id"
@@ -36,25 +53,12 @@ class CroppedDataset(Dataset):
             self.crop_uids = self.crop_uids[n_train : (n_train + n_val)]
         elif mode == "test":
             self.crop_uids = self.crop_uids[(n_train + n_val) : ]
+        print(f"{mode}-dataset created containing {len(self.crop_uids)} crops")
 
-        self.images = []
-        self.targets = []
-        counter = 0
-        start = time.time()
-        for idx in range(len(self)):
-            counter += 1
-            if counter % 100 == 0:
-                print("another 100 elements loaded into RAM")
-            img, tgt = self._load_item(idx)
-            self.images.append(img)
-            self.targets.append(tgt)
-        end = time.time()
-        print(f"dataset.py: All images loaded into RAM within {end - start:.4f} seconds")
-        
     def __len__(self):
         return len(self.crop_uids)
 
-    def _load_item(self, idx):
+    def __getitem__(self, idx):
         crop_uid = self.crop_uids[idx]
         ann = self.gt_df[self.gt_df.crop_uid == crop_uid].copy()
         crop_row = int(ann.crop_row.iloc[0])
@@ -103,9 +107,9 @@ class CroppedDataset(Dataset):
                 target[i, j, a, 5 + cls] = 1.0
 
         return image, target
+    
 
-    def __getitem__(self, idx):
-        return self.images[idx], self.targets[idx]
+
 
 
 

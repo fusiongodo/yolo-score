@@ -189,41 +189,10 @@ class DataExtractor:
         return df
 
 
-save_dir = "model_dumps"
-
-def loadModel(checkpoint_path,model, optimizer):
-    path = os.path.join(save_dir, checkpoint_path)
-    print(f"loadmodel: path: {path}")
-    if os.path.isfile(path):
-        ckpt = torch.load(path)
-        model.load_state_dict(ckpt['model'])
-        optimizer.load_state_dict(ckpt['opt'])
-        print(f"Model {checkpoint_path} successfully loaded")
-    else:
-        print(f"loadmodel: path: {path} does not exist")
-
-
-# def saveModel(checkpoint_path,model, optimizer):
-#     path = os.path.join(save_dir, checkpoint_path)
-#     torch.save({
-#         'model': model.state_dict(),
-#         'opt':   optimizer.state_dict()
-#     }, path)
-#     print(f"Checkpoint {checkpoint_path} saved.")
 
 
 
 
-def saveModel(filename: str, model: nn.Module, dump_dir = "model_dumps"):
-    """Save model weights to ./model_dumps/<filename>.pth"""
-    os.makedirs(dump_dir, exist_ok=True)
-    path = os.path.join(dump_dir, f"{filename}.pth" if not filename.endswith('.pth') else filename)
-    torch.save(model.state_dict(), path)
-    if hasattr(model, 'device'):
-        loc = getattr(model, 'device')
-    else:
-        loc = next(model.parameters()).device
-    print(f"[saveModel] Saved weights to {path} (device={loc})")
 
 
 
@@ -420,32 +389,15 @@ class DataExtractor:
 
 save_dir = "model_dumps"
 
-# def loadModel(checkpoint_path,model, optimizer):
-#     path = os.path.join(save_dir, checkpoint_path)
-#     print(f"loadmodel: path: {path}")
-#     if os.path.isfile(path):
-#         ckpt = torch.load(path)
-#         model.load_state_dict(ckpt['model'])
-#         optimizer.load_state_dict(ckpt['opt'])
-#         print(f"Model {checkpoint_path} successfully loaded")
-#     else:
-#         print(f"loadmodel: path: {path} does not exist")
 
-
-# def saveModel(checkpoint_path,model, optimizer):
-#     path = os.path.join(save_dir, checkpoint_path)
-#     torch.save({
-#         'model': model.state_dict(),
-#         'opt':   optimizer.state_dict()
-#     }, path)
-#     print(f"Checkpoint {checkpoint_path} saved.")
-
+    
 
 
 def saveModel(filename: str, model: nn.Module, dump_dir = "model_dumps"):
     """Save model weights to ./model_dumps/<filename>.pth"""
     os.makedirs(dump_dir, exist_ok=True)
     path = os.path.join(dump_dir, f"{filename}.pth" if not filename.endswith('.pth') else filename)
+    
     torch.save(model.state_dict(), path)
     if hasattr(model, 'device'):
         loc = getattr(model, 'device')
