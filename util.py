@@ -7,21 +7,18 @@ from importlib import reload
 import config
 import torch.nn as nn
 import numpy as np
-
-import torch
-import os
-import json
-import pandas as pd
-import config
-import numpy as np
+from IPython.display import display
 
 
-import torch
-import os
-import json
-import pandas as pd
-import config
-import numpy as np
+
+
+
+
+
+
+
+
+
 
 reload(config)
 
@@ -189,10 +186,41 @@ class DataExtractor:
         return df
 
 
+save_dir = "model_dumps"
+
+def loadModel(checkpoint_path,model, optimizer):
+    path = os.path.join(save_dir, checkpoint_path)
+    print(f"loadmodel: path: {path}")
+    if os.path.isfile(path):
+        ckpt = torch.load(path)
+        model.load_state_dict(ckpt['model'])
+        optimizer.load_state_dict(ckpt['opt'])
+        print(f"Model {checkpoint_path} successfully loaded")
+    else:
+        print(f"loadmodel: path: {path} does not exist")
+
+
+# def saveModel(checkpoint_path,model, optimizer):
+#     path = os.path.join(save_dir, checkpoint_path)
+#     torch.save({
+#         'model': model.state_dict(),
+#         'opt':   optimizer.state_dict()
+#     }, path)
+#     print(f"Checkpoint {checkpoint_path} saved.")
 
 
 
 
+def saveModel(filename: str, model: nn.Module, dump_dir = "model_dumps"):
+    """Save model weights to ./model_dumps/<filename>.pth"""
+    os.makedirs(dump_dir, exist_ok=True)
+    path = os.path.join(dump_dir, f"{filename}.pth" if not filename.endswith('.pth') else filename)
+    torch.save(model.state_dict(), path)
+    if hasattr(model, 'device'):
+        loc = getattr(model, 'device')
+    else:
+        loc = next(model.parameters()).device
+    print(f"[saveModel] Saved weights to {path} (device={loc})")
 
 
 
@@ -389,15 +417,32 @@ class DataExtractor:
 
 save_dir = "model_dumps"
 
+# def loadModel(checkpoint_path,model, optimizer):
+#     path = os.path.join(save_dir, checkpoint_path)
+#     print(f"loadmodel: path: {path}")
+#     if os.path.isfile(path):
+#         ckpt = torch.load(path)
+#         model.load_state_dict(ckpt['model'])
+#         optimizer.load_state_dict(ckpt['opt'])
+#         print(f"Model {checkpoint_path} successfully loaded")
+#     else:
+#         print(f"loadmodel: path: {path} does not exist")
 
-    
+
+# def saveModel(checkpoint_path,model, optimizer):
+#     path = os.path.join(save_dir, checkpoint_path)
+#     torch.save({
+#         'model': model.state_dict(),
+#         'opt':   optimizer.state_dict()
+#     }, path)
+#     print(f"Checkpoint {checkpoint_path} saved.")
+
 
 
 def saveModel(filename: str, model: nn.Module, dump_dir = "model_dumps"):
     """Save model weights to ./model_dumps/<filename>.pth"""
     os.makedirs(dump_dir, exist_ok=True)
     path = os.path.join(dump_dir, f"{filename}.pth" if not filename.endswith('.pth') else filename)
-    
     torch.save(model.state_dict(), path)
     if hasattr(model, 'device'):
         loc = getattr(model, 'device')
@@ -474,21 +519,7 @@ def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale, effective_full_si
 def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200), obj_thres = 0.5,
                              out_dir="evaluation_crops_from_dataset",
                              name="crop.png"):
-    """
-    Renders the crop image with ground truth bounding boxes decoded from the target tensor.
-    
-    Args:
-        image (torch.Tensor): The crop image tensor (CHW, float32 0-1).
-        target (torch.Tensor): The target tensor (N, N, A, 5 + C).
-        colour (tuple): The color for the bounding boxes.
-        out_dir (str): Directory to save the rendered image.
-        name (str): Filename for the saved image.
-    
-    Returns:
-        PIL.Image: The rendered crop image with bounding boxes.
-    """
-    # Convert torch image (CHW float 0-1) to PIL (assuming image is square)
-    # Convert torch image to PIL (handle grayscale cases)
+    print(f"debug render_crop_from_dataset: target.shape: {target.shape}")
     if image.dim() == 2:
         # (H, W)
         h, w = image.shape
@@ -578,5 +609,6 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200), obj_thres =
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, name)
     crop_img.save(out_path)
-    #print(f"[render_crop_from_dataset] saved → {out_path}")
+    display(crop_img)
+    print(f"[render_crop_from_dataset] saved → {out_path}")
     return crop_img
