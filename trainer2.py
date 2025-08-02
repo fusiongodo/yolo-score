@@ -76,7 +76,7 @@ class Trainer:
 
     def addRecord(self, epoch):
         start = time.time()
-        mAP = eval.average_precision(self.model, self.eval_dataset, device=self.device, n_samples=100)
+        mAP = eval.avg_precision_recall(self.model, self.eval_dataset, device=self.device, n_samples=100)
         end = time.time()
         
         print(f"Elapsed: {end - start:.4f} seconds")
@@ -110,7 +110,7 @@ class Trainer:
             pred = eval.logit_to_target(pred)
 
             iou = eval.pred_to_iou(pred, target)
-            mAP = f"{eval.unit_precision(pred, target, iou):.4f}"
+            mAP = f"{eval.unit_iou_precision(pred, target, iou):.4f}"
             dir = os.path.join(self.modelseries.series_dir, "predictions", f"{self.modelseries.getEpoch()}")
             util.render_crop_from_dataset(image, pred, out_dir = dir, name = f"crop_{i}_{mAP}.png")
         self.model.train()

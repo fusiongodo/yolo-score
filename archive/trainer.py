@@ -69,13 +69,13 @@ class Trainer:
                 counter += self.dataloader.batch_size
                 if counter // 2000 == 0:
                     print("2000 crops processed")
-                    mAP = eval.average_precision(self.model, self.eval_dataset, device=self.device, n_samples=100)
+                    mAP = eval.avg_precision_recall(self.model, self.eval_dataset, device=self.device, n_samples=100)
                     print(mAP)
                     counter -= 2000
                 for k in epoch_totals:
                     epoch_totals[k] += metrics[k]
             # ----- mAP on eval subset -----
-            mAP = eval.average_precision(self.model, self.eval_dataset, device=self.device, n_samples=100)
+            mAP = eval.avg_precision_recall(self.model, self.eval_dataset, device=self.device, n_samples=100)
             avg = {k: epoch_totals[k] / steps_per_epoch for k in epoch_totals}
             epoch_line = (f"Epoch {epoch} mAP:{mAP:e}" + ' '.join([f"{k}:{avg[k]:.4f}" for k in ['total','l_xy','l_wh','l_obj','l_noobj','l_cls']]))
             self._log_epoch(epoch_line)

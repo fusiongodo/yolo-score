@@ -109,12 +109,12 @@ class CroppedDataset(Dataset):
         return image, target
     
 
-
 class CroppedPreloadedDataset(Dataset):
-    def __init__(self, gt_df,  mode = "train"):
+    def __init__(self, gt_df,  mode = "train", val_gt = None, train_gt = None):
 
         self.gt_df = gt_df
         self.img_dir = config.img_dir
+        self.mode = mode
 
         
         
@@ -130,17 +130,40 @@ class CroppedPreloadedDataset(Dataset):
 
         self.images = []
         self.targets = []
-        counter = 0
-        start = time.time()
-        for idx in range(len(self)):
-            counter += 1
-            if counter % 100 == 0:
-                print("another 100 elements loaded into RAM")
-            img, tgt = self._load_item(idx)
-            self.images.append(img)
-            self.targets.append(tgt)
-        end = time.time()
-        print(f"dataset.py: All images loaded into RAM within {end - start:.4f} seconds")
+        if (mode == "train" and train_gt) or (mode == "val" and val_gt):
+            if val_gt:
+                self.images, self.targets = val_gt[0], val_gt[1]
+            elif train_gt:
+                self.images, self.targets = train_gt[0], train_gt[1]
+        else:
+            d_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "preloaded_data", f"{self.mode}")
+            save_path =  os.path.join(d_dir, "preloaded_dataset.pt")
+
+            if not (os.path.exists(d_dir)):          
+                print(f"number of image, target pairs: {len(self.crop_uids)}")           
+                os.makedirs(os.path.join(d_dir), exist_ok=True)
+                start = time.time()
+                counter = 0
+                for idx in range(len(self)):
+                    counter += 1
+                    if counter % 100 == 0:
+                        print(f"{self.mode}_dataset: 100 elements loaded into RAM")
+                    img, tgt = self._load_item(idx)
+                    self.images.append(img)
+                    self.targets.append(tgt)
+                end = time.time()
+                print(f"dataset.py: All images saved to disk within {end - start:.4f} seconds\n Save Images.")
+
+                torch.save((self.images, self.targets), save_path)
+                print(f"dataset.py: images and targets saved at {d_dir}")
+            else:
+                start = time.time()
+                print(f"Load images and targets from {os.path.join(d_dir, 'preloaded_dataset.pt')}")
+                self.images, self.targets = torch.load(save_path)
+                end = time.time()
+                print(f"dataset.py: All images loaded into RAM within {end - start:.4f} seconds\n Save Images.")
+
+        
         
     def __len__(self):
         return len(self.crop_uids)
@@ -197,6 +220,7 @@ class CroppedPreloadedDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.images[idx], self.targets[idx]
+
 
     
 

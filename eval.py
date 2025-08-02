@@ -48,7 +48,95 @@ def iou_xyxy(a, b, eps=1e-9):
     union  = area_a + area_b - inter
     return (inter + eps) / (union + eps)
 
-def debug_pred_to_iou():
+
+def unit_precision(pred, tgt, iou, conf_thr=0.5):
+
+    conf   = pred[...,4] >= conf_thr
+    pred_c = pred[...,5:].argmax(-1)
+    tgt_c  = tgt[...,5:].argmax(-1)
+    gt_obj = tgt[...,4] > 0
+
+    tp_mask = conf & gt_obj & (pred_c == tgt_c) & (iou >= conf_thr)
+    fp_mask = conf & (~gt_obj | (gt_obj & (pred_c != tgt_c)))
+
+    # only count IoU where GT exists
+    tp = (iou >= 0.5) & tp_mask
+    fp = fp_mask
+    tp = tp.sum().float()
+    fp = fp.sum().float()
+
+    denom = tp + fp
+    return (tp / denom).item() if denom > 0 else 0.0
+
+def unit_recall(pred, tgt, iou, conf_thr=0.5):
+    conf   = pred[...,4] >= conf_thr
+    gt_obj = tgt[...,4] > 0.5 
+
+    pred_c = pred[...,5:].argmax(-1)
+    tgt_c  = tgt[...,5:].argmax(-1)
+    
+    # TP: correct class, GT exists, confident, and IoU ≥ 0.5
+    tp_mask = conf & gt_obj & (pred_c == tgt_c) & (iou >= conf_thr)
+
+    # FN: GT exists, but not matched by any confident and correct pred
+    fn_mask = gt_obj & ~tp_mask
+
+    tp = tp_mask.sum().float()
+    fn = fn_mask.sum().float()
+
+    denom = tp + fn
+    return (tp / denom).item() if denom > 0 else 0.0
+
+
+#for testing only
+def logit_to_target(tensor):
+    pred = tensor.clone()
+    
+    pred[..., [0, 1, 4]] = torch.sigmoid(pred[..., [0, 1, 4]])
+    argmax = torch.argmax(pred[..., 5:], dim=-1)
+
+    one_hot = torch.zeros_like(pred[..., 5:])
+    one_hot.scatter_(-1, argmax.unsqueeze(-1), 1.0)
+
+    pred[..., 5:] = one_hot
+    return pred
+
+#Todo: introduce randomness?
+def avg_precision_recall(model, eval_dataset, device, n_samples=100, conf_thr=0.5):
+    print("average_precision called")
+    precisions, recalls = [], []
+    model = model.to(device)
+    model.eval()
+    c = 0
+    for s in range(n_samples):
+        c += 1
+        if c > 10:
+            c -= 10
+            print(c)
+        img, tgt = eval_dataset[(s * 20) % len(eval_dataset)]
+        img = img.unsqueeze(0).unsqueeze(0).to(device) # 1, 1, H, W
+        tgt = tgt.to(device)
+        pred = model.forward(img).squeeze(0)
+        pred = logit_to_target(pred)
+        iou = pred_to_iou(pred, tgt)
+        precisions.append(unit_precision(pred, tgt, iou, conf_thr=conf_thr))
+        recalls.append(unit_recall(pred, tgt, iou, conf_thr=conf_thr))
+    return (sum(precisions) / len(precisions)), (sum(recalls) / len(recalls))
+
+
+
+
+
+#######################################################################
+#######################################################################
+#######################################################################
+###################### Debug unit_precision  ##########################
+#######################################################################
+#######################################################################
+#######################################################################
+
+
+def debug_pred_to_iou(obj_thresh = 0.5):
     N,A,C = config.N, config.A, config.C
     t = torch.zeros((N,N,A,5+C))
     t[...,0:2] = 0.5                      # tx,ty
@@ -71,65 +159,8 @@ def debug_pred_to_iou():
         print("bt:", bt[cx,cy,a])
         print("m:",  m[cx,cy])
 
-def unit_precision(pred, tgt, iou, conf_thr=0.5):
-
-    conf   = pred[...,4] >= conf_thr
-    pred_c = pred[...,5:].argmax(-1)
-    tgt_c  = tgt[...,5:].argmax(-1)
-    gt_obj = tgt[...,4] > 0
-
-    tp_mask = conf & gt_obj & (pred_c == tgt_c)
-    fp_mask = conf & (~gt_obj | (gt_obj & (pred_c != tgt_c)))
-
-    # only count IoU where GT exists
-    tp = (iou * tp_mask).sum()
-
-    # count FP as *counts*, not IoU (or use iou*gt_obj==0 => 0 anyway)
-    fp = fp_mask.sum().float()
-
-    denom = tp + fp
-    return (tp / denom).item() if denom > 0 else 0.0
 
 
-#for testing only
-def logit_to_target(tensor):
-    pred = tensor.clone()
-    
-    pred[..., [0, 1, 4]] = torch.sigmoid(pred[..., [0, 1, 4]])
-    argmax = torch.argmax(pred[..., 5:], dim=-1)
-
-    one_hot = torch.zeros_like(pred[..., 5:])
-    one_hot.scatter_(-1, argmax.unsqueeze(-1), 1.0)
-
-    pred[..., 5:] = one_hot
-    return pred
-
-#Todo: introduce randomness?
-def average_precision(model, eval_dataset, device, n_samples=100):
-    precisions = []
-    model = model.to(device)
-    model.eval()
-    for s in range(n_samples):
-        img, tgt = eval_dataset[(s * 20) % len(eval_dataset)]
-        img = img.unsqueeze(0).unsqueeze(0).to(device) # 1, 1, H, W
-        tgt = tgt.to(device)
-        pred = model.forward(img).squeeze(0)
-        pred = logit_to_target(pred)
-        iou = pred_to_iou(pred, tgt)
-        precisions.append(unit_precision(pred, tgt, iou))
-    return sum(precisions) / len(precisions)
-
-
-
-
-
-#######################################################################
-#######################################################################
-#######################################################################
-###################### Debug unit_precision  ##########################
-#######################################################################
-#######################################################################
-#######################################################################
 
 import torch, config
 from math import isclose

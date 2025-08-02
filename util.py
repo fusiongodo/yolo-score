@@ -8,18 +8,6 @@ import config
 import torch.nn as nn
 import numpy as np
 from IPython.display import display
-
-
-
-
-
-
-
-
-
-
-
-
 reload(config)
 
 
@@ -186,70 +174,6 @@ class DataExtractor:
         return df
 
 
-save_dir = "model_dumps"
-
-def loadModel(checkpoint_path,model, optimizer):
-    path = os.path.join(save_dir, checkpoint_path)
-    print(f"loadmodel: path: {path}")
-    if os.path.isfile(path):
-        ckpt = torch.load(path)
-        model.load_state_dict(ckpt['model'])
-        optimizer.load_state_dict(ckpt['opt'])
-        print(f"Model {checkpoint_path} successfully loaded")
-    else:
-        print(f"loadmodel: path: {path} does not exist")
-
-
-# def saveModel(checkpoint_path,model, optimizer):
-#     path = os.path.join(save_dir, checkpoint_path)
-#     torch.save({
-#         'model': model.state_dict(),
-#         'opt':   optimizer.state_dict()
-#     }, path)
-#     print(f"Checkpoint {checkpoint_path} saved.")
-
-
-
-
-def saveModel(filename: str, model: nn.Module, dump_dir = "model_dumps"):
-    """Save model weights to ./model_dumps/<filename>.pth"""
-    os.makedirs(dump_dir, exist_ok=True)
-    path = os.path.join(dump_dir, f"{filename}.pth" if not filename.endswith('.pth') else filename)
-    torch.save(model.state_dict(), path)
-    if hasattr(model, 'device'):
-        loc = getattr(model, 'device')
-    else:
-        loc = next(model.parameters()).device
-    print(f"[saveModel] Saved weights to {path} (device={loc})")
-
-
-
-import torch
-import os
-import json
-import pandas as pd
-from PIL import Image, ImageDraw
-from importlib import reload
-import config
-import torch.nn as nn
-import numpy as np
-
-import torch
-import os
-import json
-import pandas as pd
-import config
-import numpy as np
-
-
-import torch
-import os
-import json
-import pandas as pd
-import config
-import numpy as np
-
-reload(config)
 
 
 
@@ -416,26 +340,6 @@ class DataExtractor:
 
 
 save_dir = "model_dumps"
-
-# def loadModel(checkpoint_path,model, optimizer):
-#     path = os.path.join(save_dir, checkpoint_path)
-#     print(f"loadmodel: path: {path}")
-#     if os.path.isfile(path):
-#         ckpt = torch.load(path)
-#         model.load_state_dict(ckpt['model'])
-#         optimizer.load_state_dict(ckpt['opt'])
-#         print(f"Model {checkpoint_path} successfully loaded")
-#     else:
-#         print(f"loadmodel: path: {path} does not exist")
-
-
-# def saveModel(checkpoint_path,model, optimizer):
-#     path = os.path.join(save_dir, checkpoint_path)
-#     torch.save({
-#         'model': model.state_dict(),
-#         'opt':   optimizer.state_dict()
-#     }, path)
-#     print(f"Checkpoint {checkpoint_path} saved.")
 
 
 
@@ -462,18 +366,8 @@ def loadModel(filename: str, model: nn.Module, device: str = 'cpu', dir = 'model
 
 
 
-def _rel2abs(cx, cy, w, h, side_size=config.RES):
-    cx, cy, w, h = cx * side_size, cy * side_size, w * side_size, h * side_size
-    return [cx - w/2, cy - h/2, cx + w/2, cy + h/2]
 
 
-def _gt_box_from_row(row):
-    """Decode (cx,cy,tx,ty,tw,th) row to absolute pixel rectangle."""
-    cx = (row.cx + row.tx) / config.S
-    cy = (row.cy + row.ty) / config.S
-    w  = np.exp(row.tw) * config.ANCHORS[0][0]
-    h  = np.exp(row.th) * config.ANCHORS[0][1]
-    return _rel2abs(cx, cy, w, h)
 
 
 def load_crop_image(img_path, crop_row, crop_col):
@@ -495,27 +389,11 @@ def load_crop_image(img_path, crop_row, crop_col):
 
     return crop_img, left_px, top_px, scale, effective_full_size
 
-def drawCropBoxes(crop_rows, crop_img, top_px, left_px, scale, effective_full_size):
-
-    draw = ImageDraw.Draw(crop_img, "L")
-    for _, row in crop_rows.iterrows():
-        cx_full = (row.cx + row.tx) / config.S
-        cy_full = (row.cy + row.ty) / config.S
-        w_full = np.exp(row.tw) * config.ANCHORS[0][0]
-        h_full = np.exp(row.th) * config.ANCHORS[0][1]
-        x0, y0, x1, y1 = _rel2abs(cx_full, cy_full, w_full, h_full, side_size=effective_full_size)
-        box = [(x0 - left_px) * scale,
-            (y0 - top_px) * scale,
-            (x1 - left_px) * scale,
-            (y1 - top_px) * scale]
-        #draw.rectangle(box, outline=(0, 255, 0, 200), width=2)
-        draw.rectangle(box, outline=128, width=2)
 
 
 
 
-
-
+# used in visualize.ipynb
 def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200), obj_thres = 0.5,
                              out_dir="evaluation_crops_from_dataset",
                              name="crop.png"):
