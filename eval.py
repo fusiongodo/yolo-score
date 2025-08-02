@@ -49,43 +49,6 @@ def iou_xyxy(a, b, eps=1e-9):
     return (inter + eps) / (union + eps)
 
 
-def unit_precision(pred, tgt, iou, conf_thr=0.5):
-
-    conf   = pred[...,4] >= conf_thr
-    pred_c = pred[...,5:].argmax(-1)
-    tgt_c  = tgt[...,5:].argmax(-1)
-    gt_obj = tgt[...,4] > 0
-
-    tp_mask = conf & gt_obj & (pred_c == tgt_c) & (iou >= conf_thr)
-    fp_mask = conf & (~gt_obj | (gt_obj & (pred_c != tgt_c)))
-
-    # only count IoU where GT exists
-    tp = (iou >= 0.5) & tp_mask
-    fp = fp_mask
-    tp = tp.sum().float()
-    fp = fp.sum().float()
-
-    denom = tp + fp
-    return (tp / denom).item() if denom > 0 else 0.0
-
-def unit_recall(pred, tgt, iou, conf_thr=0.5):
-    conf   = pred[...,4] >= conf_thr
-    gt_obj = tgt[...,4] > 0.5 
-
-    pred_c = pred[...,5:].argmax(-1)
-    tgt_c  = tgt[...,5:].argmax(-1)
-    
-    # TP: correct class, GT exists, confident, and IoU ≥ 0.5
-    tp_mask = conf & gt_obj & (pred_c == tgt_c) & (iou >= conf_thr)
-
-    # FN: GT exists, but not matched by any confident and correct pred
-    fn_mask = gt_obj & ~tp_mask
-
-    tp = tp_mask.sum().float()
-    fn = fn_mask.sum().float()
-
-    denom = tp + fn
-    return (tp / denom).item() if denom > 0 else 0.0
 
 
 #for testing only
@@ -101,27 +64,126 @@ def logit_to_target(tensor):
     pred[..., 5:] = one_hot
     return pred
 
-#Todo: introduce randomness?
+def prec_rec_cls(tp_mask, fp_mask, fn_mask):
+    prec_cls, rec_cls = dict(), dict()
+    for i in range(136):
+        tp_mask_cls = tp_mask[..., 5] == i
+        fp_mask_cls = fp_mask[..., 5] == i
+        fn_mask_cls = fn_mask[..., 5] == i
+
+        tp_cls = tp_mask_cls.sum().float().item()
+        fp_cls = fp_mask_cls.sum().float().item()
+        fn_cls = fn_mask_cls.sum().float().item()
+
+        
+        if tp_cls + fp_cls > 0.0:
+            precision = tp_cls / (tp_cls + fp_cls)
+        else:
+            precision = 0.0
+        if tp_cls + fn_cls > 0.0:
+            recall = tp_cls / (tp_cls + fn_cls)
+        else:
+            recall = 0.0
+
+        prec_cls[i] = precision
+        rec_cls[i] = recall
+    return prec_cls, rec_cls
+
+def calc_masks(pred, tgt, iou, conf_thr):
+        pred_conf   = pred[...,4] >= conf_thr
+        tgt_conf = tgt[...,4] > 0.2 # just any value between 0 and 1 will do
+        pred_cls = pred[...,5:].argmax(-1)
+        tgt_cls  = tgt[...,5:].argmax(-1)
+
+        tp_mask = pred_conf & tgt_conf & (pred_cls == tgt_cls) & (iou >= conf_thr)
+        fp_mask = pred_conf & (
+            (~tgt_conf) | 
+            (tgt_conf & (pred_cls != tgt_cls)) | 
+            (iou < conf_thr )
+            ) 
+        fn_mask = tgt_conf &(
+            (~pred_conf) |
+            (pred_cls != tgt_cls) |
+            (iou < conf_thr)
+        )
+        return tp_mask, fp_mask, fn_mask, tgt_conf
+
+def unit_precision_recall(tp_mask, fp_mask, fn_mask):
+    tp = tp_mask.sum().float().item()
+    fp = fp_mask.sum().float().item()
+    fn = fn_mask.sum().float().item()
+    
+    if tp + fn > 0.0:
+        recall = tp / (tp + fn)
+    else:
+        recall = 0.0
+    if tp + fp > 0.0:
+        precision = tp / (tp + fp)
+    else:
+        precision = 0.0
+
+    return precision, recall
+
+
+
 def avg_precision_recall(model, eval_dataset, device, n_samples=100, conf_thr=0.5):
-    print("average_precision called")
-    precisions, recalls = [], []
+    print("avg_precision called")
+
+    tps, fps, fns = [], [], []
+    num_zero, num_one, num_two, active_anchor_one, active_anchor_two  = [], [], [], [], []
+    max_two = [0, 0]
     model = model.to(device)
     model.eval()
-    c = 0
     for s in range(n_samples):
-        c += 1
-        if c > 10:
-            c -= 10
-            print(c)
         img, tgt = eval_dataset[(s * 20) % len(eval_dataset)]
         img = img.unsqueeze(0).unsqueeze(0).to(device) # 1, 1, H, W
         tgt = tgt.to(device)
         pred = model.forward(img).squeeze(0)
         pred = logit_to_target(pred)
         iou = pred_to_iou(pred, tgt)
-        precisions.append(unit_precision(pred, tgt, iou, conf_thr=conf_thr))
-        recalls.append(unit_recall(pred, tgt, iou, conf_thr=conf_thr))
-    return (sum(precisions) / len(precisions)), (sum(recalls) / len(recalls))
+        tp_mask, fp_mask, fn_mask, tgt_conf = calc_masks(pred, tgt, iou, conf_thr=conf_thr)
+
+        tp = tp_mask.sum().float().item()
+        fp = fp_mask.sum().float().item()
+        fn = fn_mask.sum().float().item()
+
+        tps.append(tp)
+        fps.append(fp)
+        fns.append(fn)
+
+
+        #active_per_cell = tgt_conf.sum(dim=-1) # number of anchors per cell from tgt_conf
+        # active_one = ((tgt_conf[..., 0] == 1) & (active_per_cell == 1)).sum().item()
+        # active_two = ((tgt_conf[..., 1] == 1)  & (active_per_cell == 1)).sum().item()
+        # active_anchor_one.append(active_one)
+        # active_anchor_two.append(active_two)
+        # zero = (active_per_cell == 0).sum().item()
+        # one = (active_per_cell == 1).sum().item()
+        # two = (active_per_cell == 2).sum().item()
+        # if two > max_two[1]:
+        #     max_two = [s, two]
+        # num_zero.append(zero)
+        # num_one.append(one)
+        # num_two.append(two)
+        
+        
+
+    # avg_zero = sum(num_zero) / len(num_zero)
+    # avg_one = sum(num_one) / len(num_one)
+    # #check if all ones are at anchor zero
+    # avg_two = sum(num_two) / len(num_two)
+    # avg_anchor_one = sum(active_anchor_one) / len(active_anchor_one)
+    # avg_anchor_two = sum(active_anchor_two) / len(active_anchor_two)
+
+    # print(f"avg_zero, avg_one, avg_two: {avg_zero, avg_one, avg_two}")
+    # print(f"max_two: {max_two}")
+    # print(f"avg active in anchor one vs. two: {avg_anchor_one, avg_anchor_two}")
+
+    tp, fp, fn = sum(tps), sum(fps), sum(fns)
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+        
+    return recall, precision, tp, fp, fn
 
 
 

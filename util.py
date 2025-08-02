@@ -394,7 +394,7 @@ def load_crop_image(img_path, crop_row, crop_col):
 
 
 # used in visualize.ipynb
-def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200), obj_thres = 0.5,
+def render_crop_from_dataset(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 0.5,
                              out_dir="evaluation_crops_from_dataset",
                              name="crop.png"):
     print(f"debug render_crop_from_dataset: target.shape: {target.shape}")
@@ -418,6 +418,7 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200), obj_thres =
     # Draw setup
     draw = ImageDraw.Draw(crop_img, "RGBA")  #changed for colored boxes
 
+    
 
     N, _, A, _ = target.shape
     side_size = config.RES  # Assuming this is the side size (e.g., 224)
@@ -430,14 +431,18 @@ def render_crop_from_dataset(image, target, colour=(0, 255, 0, 200), obj_thres =
         indexing='ij'
     )
 
+    flat_iou = iou.reshape(-1)
+    mask = flat_iou > obj_thresh # e.g., 0.2
+
     # Flatten everything
-    flat_i = i_grid.reshape(-1)
-    flat_j = j_grid.reshape(-1)
-    flat_a = a_grid.reshape(-1)
-    flat_params = target[..., :5].reshape(-1, 5)  # (N*N*A, 5), where [:,4] is obj
+    flat_i = i_grid.reshape(-1)[mask]
+    flat_j = j_grid.reshape(-1)[mask]
+    flat_a = a_grid.reshape(-1)[mask]
+    flat_params = target[..., :5].reshape(-1, 5)[mask]  # (N*N*A, 5), where [:,4] is obj
+    
 
     # Mask for valid boxes
-    mask = flat_params[:, 4] >= obj_thres
+    mask = flat_params[:, 4] >= obj_thresh
 
     if not mask.any():
         # No boxes to draw
