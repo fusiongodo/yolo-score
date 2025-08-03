@@ -183,7 +183,7 @@ def avg_precision_recall(model, eval_dataset, device, n_samples=100, conf_thr=0.
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
         
-    return recall, precision, tp, fp, fn
+    return recall, precision, (tp, fp, fn)
 
 
 

@@ -122,7 +122,6 @@ class Trainer:
             self.current_epoch, start = epoch, time.time() # needed for keyboardInterrupt
             print(f"trainer.run(): Epoch {self.current_epoch}")
             for imgs, targets in self.train_loader:
-                imgs = imgs.unsqueeze(1) #in dataset verlegen?
                 imgs, targets = imgs.to(self.device), targets.to(self.device)
                 self.opt.zero_grad()
                 loss, loss_dict = self.loss_fn(self.model(imgs), targets)

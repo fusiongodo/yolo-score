@@ -105,7 +105,8 @@ class CroppedDataset(Dataset):
             cls = int(row['class_id'])
             if cls < config.C:
                 target[i, j, a, 5 + cls] = 1.0
-
+        
+        image = image.unsqueeze(0)
         return image, target
     
 
