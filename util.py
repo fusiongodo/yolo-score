@@ -394,10 +394,9 @@ def load_crop_image(img_path, crop_row, crop_col):
 
 
 # used in visualize.ipynb
-def render_crop_from_dataset(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 0.5,
+def render_prediction(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 0.5,
                              out_dir="evaluation_crops_from_dataset",
                              name="crop.png"):
-    print(f"debug render_crop_from_dataset: target.shape: {target.shape}")
     if image.dim() == 2:
         # (H, W)
         h, w = image.shape
@@ -492,6 +491,4 @@ def render_crop_from_dataset(image, target, iou, colour=(0, 255, 0, 200), obj_th
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, name)
     crop_img.save(out_path)
-    display(crop_img)
-    print(f"[render_crop_from_dataset] saved → {out_path}")
     return crop_img

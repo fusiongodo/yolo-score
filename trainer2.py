@@ -76,20 +76,22 @@ class Trainer:
 
     def addRecord(self, epoch):
         start = time.time()
-        mAP = eval.avg_precision_recall(self.model, self.eval_dataset, device=self.device, n_samples=100)
+        mREC, mAP, (tp, fp, fn), (precision_per_cls, recall_per_cls) = eval.avg_precision_recall(self.model, self.eval_dataset, device=self.device, n_samples=100)
         end = time.time()
-        
         print(f"Elapsed: {end - start:.4f} seconds")
         
-        r = Record(self.rec_counter, epoch, mAP, self.learn_config, self.lossRecord)
+        r = Record(self.rec_counter, epoch, mAP, mREC, self.learn_config, self.lossRecord)
         self.modelseries.addRecord(r)
+        self.modelseries.eval_records.addEvalRecord(precision_per_cls, recall_per_cls, epoch)
         self.lossRecord = LossRecord()
         self.rec_counter = 0
 
     def keyboardInterrupt(self):
+        mREC, mAP, (tp, fp, fn), (precision_per_cls, recall_per_cls) = eval.avg_precision_recall(self.model, self.eval_dataset, device=self.device, n_samples=100)
+        self.modelseries.eval_records.addEvalRecord(precision_per_cls, recall_per_cls, self.current_epoch)
         self.addRecord(self.current_epoch)
         self.modelseries.saveJsonData()
-        self.modelseries.saveCheckpoint(self.model)
+        self.modelseries.addCheckpoint(self.model)
 
     def visualize(self):
         self.model.eval()
@@ -104,23 +106,27 @@ class Trainer:
             image = image.unsqueeze(0)  # [1, H, W]
 
             with torch.no_grad():
-                pred = self.model(image.unsqueeze(0))  # [1, 1, H, W] -> model -> [1, N, N, A, 5+C]
+                pred = self.model(image)  # [1, 1, H, W] -> model -> [1, N, N, A, 5+C]
                 pred = pred.squeeze(0)  # [N, N, A, 5+C]
 
             pred = eval.logit_to_target(pred)
 
             iou = eval.pred_to_iou(pred, target)
-            mAP = f"{eval.unit_precision(pred, target, iou):.4f}"
+            tp_mask, fp_mask, fn_mask, tgt_conf, pred_cls, tgt_cls = eval.calc_masks(pred, target, iou, conf_thr=0.5)
+            precision, recall = eval.unit_precision_recall(tp_mask, fp_mask, fn_mask)
+
+            iou = eval.pred_to_iou(pred, target)
+            mAP = f"{precision:.4f}"
+            mREC = f"{recall:.4f}"
             dir = os.path.join(self.modelseries.series_dir, "predictions", f"{self.modelseries.getEpoch()}")
-            util.render_crop_from_dataset(image, pred, out_dir = dir, name = f"crop_{i}_{mAP}.png")
+            rendered = util.render_prediction(image.squeeze(0), pred, iou, out_dir = dir, name = f"crop_{i}_{mAP}_{mREC}.png", obj_thresh=0.01)
         self.model.train()
 
     def run(self, num_workers = 0):
-        switch_debug = True
         
         for epoch in range(self.start_epoch, self.start_epoch + self.epochs):
-            self.current_epoch, start = epoch, time.time() # needed for keyboardInterrupt
-            print(f"trainer.run(): Epoch {self.current_epoch}")
+            self.current_epoch = epoch
+            counter = 0
             for imgs, targets in self.train_loader:
                 imgs, targets = imgs.to(self.device), targets.to(self.device)
                 self.opt.zero_grad()
@@ -130,15 +136,12 @@ class Trainer:
                 self.rec_counter += self.train_loader.batch_size
                 self.index_counter += self.train_loader.batch_size
                 self.lossRecord.addLossDictionary(loss_dict)
-            if switch_debug:
-                self.modelseries.addCheckpoint(self.model)
-                print("debug: addCheckpoint()")
-                switch_debug = False
-                
+                counter += imgs.shape[0]
+                if counter > 100 :
+                    counter -= 100
+                    print("forward 100")
 
-                        
-            end = time.time()
-            print(f"Epoch duration without mAP and prediction rendering: {end - start:.4f} seconds")
+ 
             self.addRecord(epoch)
             self.visualize()
             if((epoch - self.start_epoch + 1) % self.checkpoint_rate == 0):

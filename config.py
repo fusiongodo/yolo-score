@@ -14,9 +14,9 @@ models = os.path.join(BASE_DIR, "models")
 S = 60
 A = 2
 C = 136
-N = 20
+N = 60
 
-RES = 480
+RES = 720
 
 ANCHORS = np.array([
     [0.02080085, 0.01517667],

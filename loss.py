@@ -64,7 +64,6 @@ class YOLOv2Loss(nn.Module):
 
     # ------------------------------------------------------------------
     def forward(self, pred, target):
-        print("forward")
         #pred and tgt shape: [8, 20, 20, 2, 141]
         device = pred.device
         Q, S, _, A, _ = pred.shape
@@ -83,6 +82,7 @@ class YOLOv2Loss(nn.Module):
 
         # Mask of GT objects
         pos_mask = g_to > 0.5  # [Q,N,N,2]
+
 
         # ---------------- Decode to box params for IoU -----------------
         p_tx_s, p_ty_s, p_w, p_h = _decode_boxes(torch.sigmoid(p_tx), torch.sigmoid(p_ty), p_tw, p_th) #[Q, 20, 20, 2], [Q, 20, 20, 2], [Q, 20, 20, 2], [Q, 20, 20, 2]
@@ -141,6 +141,12 @@ class YOLOv2Loss(nn.Module):
 
         # objectness loss
                   #[Q, N, N, A]
+        
+        ########################## check to confirm if both are ~0.0. Then the model is matchin IoU = 0 -> objectness = 0
+        ###########################
+        ########################
+        #print("ious_matched mean:", ious_matched.mean().item(),
+        #"p_to mean:", torch.sigmoid(p_to[pos_mask]).mean().item())
 
 
         # ------------------- Loss components ---------------------------
@@ -152,11 +158,16 @@ class YOLOv2Loss(nn.Module):
             F.mse_loss(p_tw[pos_mask], aligned_target[..., 2][pos_mask], reduction='sum') +
             F.mse_loss(p_th[pos_mask], aligned_target[..., 3][pos_mask], reduction='sum'))
 
-        loss_obj = self.l_obj * F.mse_loss(
-            torch.sigmoid(p_to[pos_mask]),             # (M,)
-            ious_matched.detach(),                     # (M,)
+        # loss_obj = self.l_obj * F.mse_loss(
+        #     torch.sigmoid(p_to[pos_mask]),             # (M,)
+        #     ious_matched.detach(),                     # (M,)
+        #     reduction='sum'
+        # )     
+        loss_obj = self.l_obj * F.binary_cross_entropy_with_logits(
+            p_to[pos_mask],
+            torch.ones_like(p_to[pos_mask]),
             reduction='sum'
-        )     
+        )
         loss_noobj = self.l_noobj * F.binary_cross_entropy_with_logits(p_to[noobj_mask], torch.zeros_like(p_to[noobj_mask]), reduction='sum')
 
     

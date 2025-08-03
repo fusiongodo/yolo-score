@@ -9,6 +9,92 @@ from importlib import reload
 reload(util)
 reload(c)
 
+
+
+
+class EvalRecord:
+    def __init__(self, gt_df):
+        columns = "class_id, class_name, n_occurences, n_images, epoch, mAP, mREC".split(", ")
+        self.df = pd.DataFrame(columns = columns)
+        self.gt_df = gt_df
+
+                # Load class names JSON into a dict
+        with open(os.path.join(c.img_dir, "..", "class_names.json"), "r", encoding="utf-8") as f:
+            self.class_names = json.load(f)  # keys as strings
+
+        # Convert keys to int for direct index lookup
+        self.class_names = {int(k): v for k, v in self.class_names.items()}
+        self.class_stats = self.calc_class_stats()
+
+    def calc_class_stats(self):
+        # group stats
+        stats = (
+            self.gt_df.groupby("class_id")
+                .agg(
+                    n_occurences=("class_id", "size"),
+                    n_images=("img_id", "nunique")
+                )
+                .reset_index()
+        )
+
+        # add class_name
+        stats["class_name"] = stats["class_id"].map(self.class_names)
+
+        # add empty columns to match EvalRecord schema
+        stats["epoch"] = None
+        stats["mAP"]   = None
+        stats["mREC"]  = None
+
+        # reorder to match self.df columns
+        stats = stats[["class_id", "class_name", "n_occurences", "n_images", "epoch", "mAP", "mREC"]]
+
+        # sort by n_occurences
+        stats = stats.sort_values("n_occurences", ascending=False).reset_index(drop=True)
+
+        return stats
+    
+    def addEvalRecord(self, prec_per_cls, rec_per_cls, epoch):
+        ids = list(range(len(prec_per_cls)))
+        occ_map = dict(zip(self.class_stats["class_id"], self.class_stats["n_occurences"]))
+        img_map = dict(zip(self.class_stats["class_id"], self.class_stats["n_images"]))
+        data = {
+            "class_id": list(range(len(prec_per_cls))),
+            "class_name": [self.class_names[i] for i in ids],
+            "mAP": prec_per_cls.detach().cpu().numpy(),
+            "mREC": rec_per_cls.detach().cpu().numpy(),
+            "n_occurences": [occ_map.get(i, 0) for i in ids],
+            "n_images": [img_map.get(i, 0) for i in ids],
+            "epoch": [epoch] * len(ids) 
+        }
+
+        df_new = pd.DataFrame(data)
+        self.df = pd.concat([self.df, df_new], ignore_index=True)
+
+    def saveJsonData(self, model_name, save_dir):
+        data = {
+            "eval_records": self.df.to_dict(orient="records")
+        }
+        filename = f"{model_name}_eval.json"
+        filepath = os.path.join(save_dir, filename)
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+        print(f"EvalRecord: saved → {filepath}")
+
+    def loadJsonData(self, model_name, save_dir):
+        if not self.save_dir:
+            raise ValueError("save_dir not set in EvalRecord")
+
+        filename = f"{model_name}_eval.json"
+        filepath = os.path.join(save_dir, filename)
+        if not os.path.exists(filepath):
+            print(f"EvalRecord: no eval JSON found at {filepath}")
+            return
+
+        with open(filepath, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        #print(f"EvalRecords loading data successful: {}")
+        self.df = pd.DataFrame(data["eval_records"])
+        print(f"EvalRecord: loaded → {filepath}")
     
     
     
@@ -66,7 +152,7 @@ class LossRecord:
         }
     
 class Record:
-    def __init__(self, n_crops, epoch, mAP, learn_configs : LearnConfig, losses : LossRecord): 
+    def __init__(self, n_crops, epoch, mAP, mREC, learn_configs : LearnConfig, losses : LossRecord): 
         
         print(f"Record.__init__: {n_crops} images processed")
         losses = losses.toDict()
@@ -75,6 +161,7 @@ class Record:
         self.n_crops = n_crops
         self.epoch = epoch
         self.mAP = mAP
+        self.mREC = mREC
         self.c_xy = learn_configs["c_xy"]
         self.c_wh = learn_configs["c_wh"]
         self.c_obj = learn_configs["c_obj"]
@@ -94,6 +181,7 @@ class Record:
             "n_crops": self.n_crops,
             "epoch" : self.epoch,
             "mAP": self.mAP,
+            "mREC": self.mREC,
             "c_xy": self.c_xy,
             "c_wh": self.c_wh,
             "c_obj": self.c_obj,
@@ -109,7 +197,7 @@ class Record:
         }
 
 class ModelSeries:
-    def __init__(self, name, model = m.YOLOResNet(), model_descr = "not provided", mode = ""):
+    def __init__(self, name, gt_df, model = m.YOLOResNet(), model_descr = "not provided",  mode = ""):
         self.name = name
         self.model = model
         self.model_descr = model_descr#nur bei erstmaligem erstellen nötig
@@ -121,13 +209,14 @@ class ModelSeries:
         self.series_dir = os.path.join(c.models, f"{self.S}@{self.N}@{self.A}@{self.RES}", self.name)
         self.checkpoint = 0
         self.mode = mode
-        columns = "checkpoint_idx, n_crops, epoch, mAP, c_lr, c_xy, c_wh, c_obj, c_noobj, c_cls, l_total, l_xy, l_wh, l_obj, l_noobj, l_cls".split(", ")
+        columns = "checkpoint_idx, n_crops, epoch, mAP, mREC, c_lr, c_xy, c_wh, c_obj, c_noobj, c_cls, l_total, l_xy, l_wh, l_obj, l_noobj, l_cls".split(", ")
         # Define data types for each column
         dtypes = {
             "checkpoint_idx": "Int64",  # Nullable integer for checkpoint index
             "n_crops": "Int64",        # Nullable integer for crop count
             "epoch": "Int64",          # Nullable integer for epoch
             "mAP": "float64",          # Float for mean average precision
+            "mREC": "float64",
             "c_lr": "float64",         # Float for learning rate
             "c_xy": "float64",         # Float for loss coefficients
             "c_wh": "float64",
@@ -157,6 +246,7 @@ class ModelSeries:
                     self.model = self.loadLatestCheckpoint(self.model)
                 except Exception:
                     print("Modelseries: loadLastCheckpoint Error")
+        self.eval_records = EvalRecord(gt_df)
 
 
 
@@ -196,16 +286,26 @@ class ModelSeries:
     
     def loadJsonData(self):
         filename = f"{self.name}_.json"
-        with open(os.path.join(self.series_dir, filename), 'r') as f:
-            data = json.load(f)
+        print(f"ModelSeries: filepath exists: {os.path.exists(os.path.join(self.series_dir, filename))}")
+        try:
+            with open(os.path.join(self.series_dir, filename), 'r') as f:
+                data = json.load(f)
+            print(f"ModelSeries: data load successful: {data}")
+        except Exception:
+            print(f"ModelSeries: {Exception.with_traceback}")
         self.model_descr = data["model_descr"]
         self.S = data["S"]
         self.N = data["N"]
         self.A = data["A"]
         self.RES = data["RES"]
+        print(f"ModelSeries: loading attributes successful")
         self.records = pd.DataFrame(data["records"])
-        
+        print(f"ModelSeries: loading records successful: {self.records.head()}")
         checkpoint_idx = self.records.iloc[-1]["checkpoint_idx"] #assume pandas dataframe is still sorted after main index
+        print(f"ModelSeries: loading checkpoint_idx successful: {checkpoint_idx}")
+
+        self.eval_records.loadJsonData(self.name, self.series_dir)
+        print(f"ModelSeries: loading eval_records successful: {self.eval_records.df.head()}")
     
     def saveJsonData(self):
         data = {
@@ -223,3 +323,4 @@ class ModelSeries:
         os.makedirs(self.series_dir, exist_ok=True)
         with open(filepath, 'w') as f: #complete overwrite
             json.dump(data, f, indent = 4)
+        self.eval_records.saveJsonData(self.name, self.series_dir)

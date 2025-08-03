@@ -64,30 +64,6 @@ def logit_to_target(tensor):
     pred[..., 5:] = one_hot
     return pred
 
-def prec_rec_cls(tp_mask, fp_mask, fn_mask):
-    prec_cls, rec_cls = dict(), dict()
-    for i in range(136):
-        tp_mask_cls = tp_mask[..., 5] == i
-        fp_mask_cls = fp_mask[..., 5] == i
-        fn_mask_cls = fn_mask[..., 5] == i
-
-        tp_cls = tp_mask_cls.sum().float().item()
-        fp_cls = fp_mask_cls.sum().float().item()
-        fn_cls = fn_mask_cls.sum().float().item()
-
-        
-        if tp_cls + fp_cls > 0.0:
-            precision = tp_cls / (tp_cls + fp_cls)
-        else:
-            precision = 0.0
-        if tp_cls + fn_cls > 0.0:
-            recall = tp_cls / (tp_cls + fn_cls)
-        else:
-            recall = 0.0
-
-        prec_cls[i] = precision
-        rec_cls[i] = recall
-    return prec_cls, rec_cls
 
 def calc_masks(pred, tgt, iou, conf_thr):
         pred_conf   = pred[...,4] >= conf_thr
@@ -106,7 +82,9 @@ def calc_masks(pred, tgt, iou, conf_thr):
             (pred_cls != tgt_cls) |
             (iou < conf_thr)
         )
-        return tp_mask, fp_mask, fn_mask, tgt_conf
+        return tp_mask, fp_mask, fn_mask, tgt_conf, pred_cls, tgt_cls
+
+
 
 def unit_precision_recall(tp_mask, fp_mask, fn_mask):
     tp = tp_mask.sum().float().item()
@@ -124,6 +102,11 @@ def unit_precision_recall(tp_mask, fp_mask, fn_mask):
 
     return precision, recall
 
+def precision_recall_per_class(tp_mask, fp_mask, fn_mask, pred_cls, tgt_cls):
+    tp = torch.bincount(pred_cls[tp_mask], minlength=136).float()
+    fp = torch.bincount(pred_cls[fp_mask], minlength=136).float()
+    fn = torch.bincount(tgt_cls[fn_mask],  minlength=136).float()
+    return tp, fp, fn
 
 
 def avg_precision_recall(model, eval_dataset, device, n_samples=100, conf_thr=0.5):
@@ -131,59 +114,45 @@ def avg_precision_recall(model, eval_dataset, device, n_samples=100, conf_thr=0.
 
     tps, fps, fns = [], [], []
     num_zero, num_one, num_two, active_anchor_one, active_anchor_two  = [], [], [], [], []
+    tp_cls= torch.zeros(136, dtype=torch.float32).to(device)
+    fp_cls = torch.zeros(136, dtype=torch.float32).to(device)
+    fn_cls = torch.zeros(136, dtype=torch.float32).to(device)
     max_two = [0, 0]
     model = model.to(device)
     model.eval()
     for s in range(n_samples):
         img, tgt = eval_dataset[(s * 20) % len(eval_dataset)]
-        img = img.unsqueeze(0).unsqueeze(0).to(device) # 1, 1, H, W
+        img = img.unsqueeze(0).to(device) # 1, 1, H, W
         tgt = tgt.to(device)
         pred = model.forward(img).squeeze(0)
         pred = logit_to_target(pred)
         iou = pred_to_iou(pred, tgt)
-        tp_mask, fp_mask, fn_mask, tgt_conf = calc_masks(pred, tgt, iou, conf_thr=conf_thr)
+        tp_mask, fp_mask, fn_mask, tgt_conf, pred_cls, tgt_cls = calc_masks(pred, tgt, iou, conf_thr=conf_thr)
 
-        tp = tp_mask.sum().float().item()
-        fp = fp_mask.sum().float().item()
-        fn = fn_mask.sum().float().item()
+        per_cls = precision_recall_per_class(tp_mask, fp_mask, fn_mask, pred_cls, tgt_cls)
+
+        # per_cls returns tensors, so just add:
+        tp_cls += per_cls[0]
+        fp_cls += per_cls[1]
+        fn_cls += per_cls[2]
+
+
+        tp = tp_mask.sum().float().item() + 1e-9
+        fp = fp_mask.sum().float().item() + 1e-9
+        fn = fn_mask.sum().float().item() + 1e-9
 
         tps.append(tp)
         fps.append(fp)
         fns.append(fn)
 
-
-        #active_per_cell = tgt_conf.sum(dim=-1) # number of anchors per cell from tgt_conf
-        # active_one = ((tgt_conf[..., 0] == 1) & (active_per_cell == 1)).sum().item()
-        # active_two = ((tgt_conf[..., 1] == 1)  & (active_per_cell == 1)).sum().item()
-        # active_anchor_one.append(active_one)
-        # active_anchor_two.append(active_two)
-        # zero = (active_per_cell == 0).sum().item()
-        # one = (active_per_cell == 1).sum().item()
-        # two = (active_per_cell == 2).sum().item()
-        # if two > max_two[1]:
-        #     max_two = [s, two]
-        # num_zero.append(zero)
-        # num_one.append(one)
-        # num_two.append(two)
-        
-        
-
-    # avg_zero = sum(num_zero) / len(num_zero)
-    # avg_one = sum(num_one) / len(num_one)
-    # #check if all ones are at anchor zero
-    # avg_two = sum(num_two) / len(num_two)
-    # avg_anchor_one = sum(active_anchor_one) / len(active_anchor_one)
-    # avg_anchor_two = sum(active_anchor_two) / len(active_anchor_two)
-
-    # print(f"avg_zero, avg_one, avg_two: {avg_zero, avg_one, avg_two}")
-    # print(f"max_two: {max_two}")
-    # print(f"avg active in anchor one vs. two: {avg_anchor_one, avg_anchor_two}")
+    precision_per_cls = tp_cls / (tp_cls + fp_cls).clamp_min(1e-9)
+    recall_per_cls    = tp_cls / (tp_cls + fn_cls).clamp_min(1e-9)
 
     tp, fp, fn = sum(tps), sum(fps), sum(fns)
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
         
-    return recall, precision, (tp, fp, fn)
+    return recall, precision, (tp, fp, fn), (precision_per_cls, recall_per_cls)
 
 
 

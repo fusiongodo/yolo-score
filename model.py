@@ -27,7 +27,7 @@ class YOLOResNet(nn.Module):
         backbone.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=3, padding=3, bias=False)
 
          #Prevent further downsampling by setting strides to 1 in subsequent layers
-        for layer in [backbone.layer2]:
+        for layer in [backbone.layer2, backbone.layer3]:
             for block in layer:
                 if hasattr(block, 'conv1'):
                     block.conv1.stride = (1, 1)
@@ -54,8 +54,9 @@ class YOLOResNet(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         features = self.backbone(x)
-        out = self.head(features)
-        N_batch, _, S1, S2 = out.shape
+        out = self.head(features)   #[Q, A*(5+C), N, N]
+        N_batch, _, S1, S2 = out.shape 
+        
         assert S1 == self.N and S2 == self.N, "Grid mismatch"
         # Reshape to [N_batch, N, N, A, 5 + C]
         out = out.view(N_batch, self.A, 5 + self.C, self.N, self.N).permute(0, 3, 4, 1, 2)
