@@ -81,20 +81,14 @@ class EvalRecord:
         print(f"EvalRecord: saved → {filepath}")
 
     def loadJsonData(self, model_name, save_dir):
-        if not self.save_dir:
-            raise ValueError("save_dir not set in EvalRecord")
-
         filename = f"{model_name}_eval.json"
         filepath = os.path.join(save_dir, filename)
         if not os.path.exists(filepath):
             print(f"EvalRecord: no eval JSON found at {filepath}")
             return
-
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
-        #print(f"EvalRecords loading data successful: {}")
         self.df = pd.DataFrame(data["eval_records"])
-        print(f"EvalRecord: loaded → {filepath}")
     
     
     
@@ -230,6 +224,7 @@ class ModelSeries:
             "l_noobj": "float64",
             "l_cls": "float64"
         }
+        self.eval_records = EvalRecord(gt_df)
         self.records = pd.DataFrame(columns = columns).astype(dtypes)
         if(os.path.exists(self.series_dir)):
             try:
@@ -246,7 +241,7 @@ class ModelSeries:
                     self.model = self.loadLatestCheckpoint(self.model)
                 except Exception:
                     print("Modelseries: loadLastCheckpoint Error")
-        self.eval_records = EvalRecord(gt_df)
+        
 
 
 
@@ -286,11 +281,9 @@ class ModelSeries:
     
     def loadJsonData(self):
         filename = f"{self.name}_.json"
-        print(f"ModelSeries: filepath exists: {os.path.exists(os.path.join(self.series_dir, filename))}")
         try:
             with open(os.path.join(self.series_dir, filename), 'r') as f:
                 data = json.load(f)
-            print(f"ModelSeries: data load successful: {data}")
         except Exception:
             print(f"ModelSeries: {Exception.with_traceback}")
         self.model_descr = data["model_descr"]
@@ -298,14 +291,10 @@ class ModelSeries:
         self.N = data["N"]
         self.A = data["A"]
         self.RES = data["RES"]
-        print(f"ModelSeries: loading attributes successful")
         self.records = pd.DataFrame(data["records"])
-        print(f"ModelSeries: loading records successful: {self.records.head()}")
         checkpoint_idx = self.records.iloc[-1]["checkpoint_idx"] #assume pandas dataframe is still sorted after main index
-        print(f"ModelSeries: loading checkpoint_idx successful: {checkpoint_idx}")
 
         self.eval_records.loadJsonData(self.name, self.series_dir)
-        print(f"ModelSeries: loading eval_records successful: {self.eval_records.df.head()}")
     
     def saveJsonData(self):
         data = {
