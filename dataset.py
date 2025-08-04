@@ -147,7 +147,7 @@ class CroppedPreloadedDataset(Dataset):
                 counter = 0
                 for idx in range(len(self)):
                     counter += 1
-                    if counter % 100 == 0:
+                    if counter % 200 == 0:
                         print(f"{self.mode}_dataset: 100 elements loaded into RAM")
                     img, tgt = self._load_item(idx)
                     self.images.append(img)
@@ -216,7 +216,7 @@ class CroppedPreloadedDataset(Dataset):
             cls = int(row['class_id'])
             if cls < config.C:
                 target[i, j, a, 5 + cls] = 1.0
-
+        image = image.unsqueeze(0)
         return image, target
 
     def __getitem__(self, idx):

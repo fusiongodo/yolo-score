@@ -10,7 +10,7 @@ import loss as l
 import eval
 import time
 import util
-from dataset import CroppedDataset
+from dataset import CroppedDataset, CroppedPreloadedDataset
 from ModelSeries import LossRecord, LearnConfig, Record, ModelSeries
 import config as c
 import util
@@ -47,8 +47,8 @@ class Trainer:
         de = util.DataExtractor()
         gt_df = de.croppedData()
    
-        self.eval_dataset = CroppedDataset(gt_df, mode = "val")
-        self.train_dataset = CroppedDataset(gt_df, mode = "train")
+        self.eval_dataset = CroppedPreloadedDataset(gt_df, mode = "val")
+        self.train_dataset = CroppedPreloadedDataset(gt_df, mode = "train")
    
        
         self.eval_loader  = DataLoader(self.eval_dataset, batch_size=self.batch_size,
@@ -125,7 +125,9 @@ class Trainer:
     def run(self, num_workers = 0):
         
         for epoch in range(self.start_epoch, self.start_epoch + self.epochs):
+            
             self.current_epoch = epoch
+            print(f"epoch: {self.current_epoch}")
             for imgs, targets in self.train_loader:
                 imgs, targets = imgs.to(self.device), targets.to(self.device)
                 self.opt.zero_grad()
