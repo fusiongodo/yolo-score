@@ -484,7 +484,7 @@ def render_prediction(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 
         draw.rectangle(
             [x0[k].item(), y0[k].item(), x1[k].item(), y1[k].item()],
             outline=colour,  # Use provided color (e.g., green (0, 255, 0, 200) or red (255, 0, 0, 200))
-            width=2
+            width=1
         )
 
     # Save and return
