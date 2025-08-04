@@ -32,7 +32,7 @@ class Trainer:
         self.testConfig() #test if moderseries config aligns with config.py
 
         d = learn_config.toDict()
-        self.loss_fn = l.YOLOv2Loss(l_xy = d["c_xy"], l_wh=d["c_wh"], l_obj=d["c_obj"], l_noobj=d["c_noobj"], l_cls=d["c_cls"])
+        self.loss_fn = l.YOLOv2Loss(l_xy = d["c_xy"], l_wh=d["c_wh"], l_obj=d["c_obj"], l_noobj=d["c_noobj"], l_cls=d["c_cls"], iou_obj = d["iou_obj"])
 
         self.learn_config = learn_config #loss paramters and lr
         self.checkpoint_rate = checkpoint_rate
@@ -82,7 +82,7 @@ class Trainer:
         
         r = Record(self.rec_counter, epoch, mAP, mREC, self.learn_config, self.lossRecord)
         self.modelseries.addRecord(r)
-        self.modelseries.eval_records.addEvalRecord(precision_per_cls, recall_per_cls, epoch)
+        self.modelseries.eval_records.addEvalRecord(precision_per_cls, recall_per_cls, self.current_epoch)
         self.lossRecord = LossRecord()
         self.rec_counter = 0
 
@@ -126,7 +126,6 @@ class Trainer:
         
         for epoch in range(self.start_epoch, self.start_epoch + self.epochs):
             self.current_epoch = epoch
-            counter = 0
             for imgs, targets in self.train_loader:
                 imgs, targets = imgs.to(self.device), targets.to(self.device)
                 self.opt.zero_grad()
@@ -136,10 +135,6 @@ class Trainer:
                 self.rec_counter += self.train_loader.batch_size
                 self.index_counter += self.train_loader.batch_size
                 self.lossRecord.addLossDictionary(loss_dict)
-                counter += imgs.shape[0]
-                if counter > 100 :
-                    counter -= 100
-                    print("forward 100")
 
  
             self.addRecord(epoch)

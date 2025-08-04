@@ -13,10 +13,12 @@ reload(c)
 
 
 class EvalRecord:
-    def __init__(self, gt_df):
+    def __init__(self, gt_df, model_name, save_dir):
         columns = "class_id, class_name, n_occurences, n_images, epoch, mAP, mREC".split(", ")
         self.df = pd.DataFrame(columns = columns)
         self.gt_df = gt_df
+        self.model_name = model_name
+        self.save_dir = save_dir
 
                 # Load class names JSON into a dict
         with open(os.path.join(c.img_dir, "..", "class_names.json"), "r", encoding="utf-8") as f:
@@ -69,13 +71,14 @@ class EvalRecord:
 
         df_new = pd.DataFrame(data)
         self.df = pd.concat([self.df, df_new], ignore_index=True)
+        self.saveJsonData()
 
-    def saveJsonData(self, model_name, save_dir):
+    def saveJsonData(self):
         data = {
             "eval_records": self.df.to_dict(orient="records")
         }
-        filename = f"{model_name}_eval.json"
-        filepath = os.path.join(save_dir, filename)
+        filename = f"{self.model_name}_eval.json"
+        filepath = os.path.join(self.save_dir, filename)
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
         print(f"EvalRecord: saved → {filepath}")
@@ -92,15 +95,15 @@ class EvalRecord:
     
     
     
-    
 class LearnConfig:
-    def __init__(self, c_xy, c_wh, c_obj, c_noobj, c_cls, c_lr):
+    def __init__(self, c_xy, c_wh, c_obj, c_noobj, c_cls, c_lr, iou_obj = False):
         self.c_xy = c_xy
         self.c_wh = c_wh
         self.c_obj = c_obj
         self.c_noobj = c_noobj
         self.c_cls = c_cls
         self.c_lr = c_lr
+        self.iou_obj = iou_obj
     
     def toDict(self):
         return {
@@ -109,7 +112,8 @@ class LearnConfig:
             "c_obj": self.c_obj,
             "c_noobj": self.c_noobj,
             "c_cls": self.c_cls,
-            "c_lr" : self.c_lr
+            "c_lr" : self.c_lr,
+            "iou_obj" : self.iou_obj
         }
     
 
@@ -162,6 +166,7 @@ class Record:
         self.c_noobj = learn_configs["c_noobj"]
         self.c_cls = learn_configs["c_cls"]
         self.c_lr = learn_configs["c_lr"]
+        self.iou_obj = learn_configs["iou_obj"] 
         self.l_total = losses["l_total"]
         self.l_xy = losses["l_xy"]
         self.l_wh = losses["l_wh"]
@@ -182,6 +187,7 @@ class Record:
             "c_noobj": self.c_noobj,
             "c_cls": self.c_cls,
             "c_lr" : self.c_lr,
+            "iou_obj" : self.iou_obj,
             "l_total": self.l_total,
             "l_xy": self.l_xy,
             "l_wh": self.l_wh,
@@ -191,7 +197,7 @@ class Record:
         }
 
 class ModelSeries:
-    def __init__(self, name, gt_df, model = m.YOLOResNet(), model_descr = "not provided",  mode = ""):
+    def __init__(self, name, gt_df, model = m.YOLOResNet(), model_descr = "not provided",  mode = "training"):
         self.name = name
         self.model = model
         self.model_descr = model_descr#nur bei erstmaligem erstellen nötig
@@ -203,7 +209,7 @@ class ModelSeries:
         self.series_dir = os.path.join(c.models, f"{self.S}@{self.N}@{self.A}@{self.RES}", self.name)
         self.checkpoint = 0
         self.mode = mode
-        columns = "checkpoint_idx, n_crops, epoch, mAP, mREC, c_lr, c_xy, c_wh, c_obj, c_noobj, c_cls, l_total, l_xy, l_wh, l_obj, l_noobj, l_cls".split(", ")
+        columns = "checkpoint_idx, n_crops, epoch, mAP, mREC, c_lr, iou_obj, c_xy, c_wh, c_obj, c_noobj, c_cls, l_total, l_xy, l_wh, l_obj, l_noobj, l_cls".split(", ")
         # Define data types for each column
         dtypes = {
             "checkpoint_idx": "Int64",  # Nullable integer for checkpoint index
@@ -211,7 +217,8 @@ class ModelSeries:
             "epoch": "Int64",          # Nullable integer for epoch
             "mAP": "float64",          # Float for mean average precision
             "mREC": "float64",
-            "c_lr": "float64",         # Float for learning rate
+            "c_lr": "float64", 
+            "iou_obj": "bool",
             "c_xy": "float64",         # Float for loss coefficients
             "c_wh": "float64",
             "c_obj": "float64",
@@ -224,7 +231,7 @@ class ModelSeries:
             "l_noobj": "float64",
             "l_cls": "float64"
         }
-        self.eval_records = EvalRecord(gt_df)
+        self.eval_records = EvalRecord(gt_df, self.name, self.series_dir)
         self.records = pd.DataFrame(columns = columns).astype(dtypes)
         if(os.path.exists(self.series_dir)):
             try:
@@ -273,9 +280,11 @@ class ModelSeries:
 
 
     def loadLatestCheckpoint(self, model):
+        
         dir_path = os.path.join(self.series_dir, "checkpoints")
         checkpoint_id = int(max([int(f.split(".")[0]) for f in os.listdir(dir_path)]))
         filename =  f"{checkpoint_id}.pth"
+        print(f"lateset checkpoint: {filename}")
         return util.loadModel(filename, model, dir = dir_path) 
 
     
@@ -312,4 +321,4 @@ class ModelSeries:
         os.makedirs(self.series_dir, exist_ok=True)
         with open(filepath, 'w') as f: #complete overwrite
             json.dump(data, f, indent = 4)
-        self.eval_records.saveJsonData(self.name, self.series_dir)
+        self.eval_records.saveJsonData()

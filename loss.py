@@ -54,13 +54,14 @@ class YOLOv2Loss(nn.Module):
     quadruple‑nested Python loop.
     """
                 
-    def __init__(self, l_xy=5.0, l_wh=5.0, l_obj=1.0, l_noobj=0.5, l_cls=1.0): 
+    def __init__(self, l_xy=5.0, l_wh=5.0, l_obj=1.0, l_noobj=0.5, l_cls=1.0, iou_obj = False): 
         super().__init__()
         self.l_xy = l_xy
         self.l_wh = l_wh
         self.l_obj = l_obj
         self.l_noobj = l_noobj
         self.l_cls = l_cls
+        self.iou_obj = iou_obj
 
     # ------------------------------------------------------------------
     def forward(self, pred, target):
@@ -157,17 +158,18 @@ class YOLOv2Loss(nn.Module):
         loss_wh = self.l_wh * (
             F.mse_loss(p_tw[pos_mask], aligned_target[..., 2][pos_mask], reduction='sum') +
             F.mse_loss(p_th[pos_mask], aligned_target[..., 3][pos_mask], reduction='sum'))
-
-        # loss_obj = self.l_obj * F.mse_loss(
-        #     torch.sigmoid(p_to[pos_mask]),             # (M,)
-        #     ious_matched.detach(),                     # (M,)
-        #     reduction='sum'
-        # )     
-        loss_obj = self.l_obj * F.binary_cross_entropy_with_logits(
-            p_to[pos_mask],
-            torch.ones_like(p_to[pos_mask]),
-            reduction='sum'
-        )
+        if self.iou_obj:
+            loss_obj = self.l_obj * F.mse_loss(
+                torch.sigmoid(p_to[pos_mask]),             # (M,)
+                ious_matched.detach(),                     # (M,)
+                reduction='sum'
+            )     
+        else:
+            loss_obj = self.l_obj * F.binary_cross_entropy_with_logits(
+                p_to[pos_mask],
+                torch.ones_like(p_to[pos_mask]),
+                reduction='sum'
+            )
         loss_noobj = self.l_noobj * F.binary_cross_entropy_with_logits(p_to[noobj_mask], torch.zeros_like(p_to[noobj_mask]), reduction='sum')
 
     
