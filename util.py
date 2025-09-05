@@ -12,169 +12,6 @@ reload(config)
 
 
 
-class DataExtractor:
-    def __init__(self, slim = False):
-        self.original_data = config.filepath
-        if not slim:
-            self.filepath = config.filepath
-            self.normalized_path = os.path.join(
-                os.path.dirname(self.filepath),
-                "gt_space.json"
-            )
-        else:
-            self.filepath = config.slimpath
-            self.normalized_path = os.path.join(
-                os.path.dirname(self.filepath),
-                "gt_space_slim.json"
-            )
-        # save next to deepscores_train.json:
-        
-        
-        self.data = None
-        self.anns_df = None
-        print(f"Saving to: {self.normalized_path}")
-
-    def loadData(self):
-        with open(self.filepath, 'r') as f:
-            return json.load(f)
-        
-    def loadSlimData(self):
-        with open(self.original_data, 'r') as f:
-            data =  json.load(f)
-
-        # 2) collect annotation IDs actually used by the 11 images
-        used_ids = {ann_id for img in data["images"] for ann_id in img["ann_ids"]}
-
-        # 3) build a pared-down annotations dict (only a_bbox, cat_id, img_id)
-        keep_keys = {"a_bbox", "cat_id", "img_id", "area"}
-        data["annotations"] = {
-            ann_id: {k: v for k, v in ann.items() if k in keep_keys}
-            for ann_id, ann in data["annotations"].items()
-            if ann_id in used_ids
-        }
-
-        print(f"kept {len(data['annotations'])} annotations; "
-            f"each with keys {sorted(keep_keys)}")
-
-        # 4) save compact JSON (no pretty-printing)
-        with open(config.slimpath, "w") as f:
-            json.dump(data, f, separators=(",", ":"))
-
-        print(f"filtered file written →  {config.slimpath}")
-
-    def createMergedAnnsDF(self):
-        images = pd.DataFrame(self.data["images"]).set_index("id")
-        anns   = pd.DataFrame(self.data["annotations"]).transpose()
-        anns["img_id"] = anns["img_id"].astype(images.index.dtype)
-        anns = (
-            anns
-            .merge(images[['filename','width','height']],
-                   left_on='img_id', right_index=True)
-            .loc[lambda df: ~df['area'].astype(float).eq(0)]
-        )
-        anns['cat_id'] = anns['cat_id'].apply(
-            lambda x: x[0] if isinstance(x, (list,tuple)) and x else x
-        )
-        self.anns_df = anns
-        return anns
-
-    def normalizedData(self, grouped = False):
-        if os.path.exists(self.normalized_path):
-            return pd.read_json(self.normalized_path)
-
-        if self.data is None:
-            self.data = self.loadData()
-        if self.anns_df is None:
-            self.createMergedAnnsDF()
-
-        xy = pd.DataFrame(self.anns_df['a_bbox'].tolist(),
-                          columns=['x1','y1','x2','y2'],
-                          index=self.anns_df.index)
-        anns = pd.concat([self.anns_df, xy], axis=1)
-
-        # center + size normalized
-        anns['x'] = ((anns.x1 + anns.x2) * .5) / anns.width
-        anns['y'] = ((anns.y1 + anns.y2) * .5) / anns.height
-        anns['w'] = (anns.x2 - anns.x1) / anns.width
-        anns['h'] = (anns.y2 - anns.y1) / anns.height
-
-        # grid cell + offsets
-        anns['cx'] = (anns.x * config.S).astype(int)
-        anns['cy'] = (anns.y * config.S).astype(int)
-        anns['tx'] = (anns.x * config.S - anns.cx).astype(np.float32)
-        anns['ty'] = (anns.y * config.S - anns.cy).astype(np.float32)
-        anns['tw'] = (np.log((anns.w / config.ANCHORS[0,0]).clip(lower=1e-9))).astype(np.float32)
-        anns['th'] = (np.log((anns.h / config.ANCHORS[0,1]).clip(lower=1e-9))).astype(np.float32)
-        anns["img_id"] = anns["img_id"].astype(int)
-
-
-        df = (
-            anns
-            .rename(columns={'cat_id':'class_id'})
-            [['img_id','filename','cx','cy','tx','ty','tw','th','class_id']]
-            .reset_index(drop=True)
-        )
-        df['class_id'] = df.class_id.astype(int)
-        df["class_id"] = df["class_id"] - 1
-        df = df[df.class_id < config.C]
-
-        if grouped:
-            df = df.groupby('img_id')
-
-        # ensure dir & save
-        os.makedirs(os.path.dirname(self.normalized_path), exist_ok=True)
-        df.to_json(self.normalized_path, orient='records', indent=2)
-        return df
-    
-    def croppedData(self, grouped: bool = True):
-        """        
-            cx_loc / cy_loc ∈ [0, N-1]  (0-39)
-        """
-        df = self.normalizedData(grouped=False).copy()
-
-        S, N = config.S, config.N             # 120, 40
-        if S % N:
-            raise ValueError("config.N must evenly divide config.S")
-
-        crops_per_dim = S // N               # 3
-        # ------- which crop does the box belong to? -------------------------------
-        df["crop_row"] = (df["cy"] // N).astype(int)   # 0..2
-        df["crop_col"] = (df["cx"] // N).astype(int)   # 0..2
-        df["crop_id"]  = df["crop_row"] * crops_per_dim + df["crop_col"]
-
-        # ------- cell indices *inside* that 40×40 crop ----------------------------
-        df["cx_loc"] = (df["cx"] % N).astype(int)       # 0..39
-        df["cy_loc"] = (df["cy"] % N).astype(int)       # 0..39
-
-        col_order = [
-            "img_id", "crop_id", "cx_loc", "cy_loc",
-            "tx", "ty", "tw", "th",
-            "class_id", "filename",
-            "cx", "cy", "crop_row", "crop_col"
-        ]
-        df = df[col_order]
-
-        # --- cache on disk so subsequent calls are cheap ----------------------------
-        cropped_path = os.path.join(
-            os.path.dirname(self.filepath),
-            f"gt_space_{N}x{N}.json"
-        )
-        if not os.path.exists(cropped_path):
-            os.makedirs(os.path.dirname(cropped_path), exist_ok=True)
-            df.to_json(cropped_path, orient='records', indent=2)
-
-        # --- optional hierarchical grouping ----------------------------------------
-        if grouped:
-
-
-            df["crop_uid"] = df.groupby(['img_id', 'crop_id']).ngroup()
-
-        #remove staff line bboxes
-        df = df[df.class_id != 134]
-        return df
-
-
-
 
 
 class DataExtractor:
@@ -395,6 +232,7 @@ def load_crop_image(img_path, crop_row, crop_col):
 
 # used in visualize.ipynb
 def render_prediction(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 0.5,
+
                              out_dir="evaluation_crops_from_dataset",
                              name="crop.png"):
     if image.dim() == 2:
@@ -491,4 +329,83 @@ def render_prediction(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, name)
     crop_img.save(out_path)
+    return crop_img
+
+
+
+def render_demo(image, pred, obj_thresh=0.5,
+                      colour=(0, 255, 0, 200),
+                      out_dir="evaluation_crops_from_dataset",
+                      name="crop.png"):
+    # image: (H,W) or (1,H,W) tensor in [0,1]; pred: (N,N,A,5+C) on any device
+    import os, torch
+    from PIL import Image, ImageDraw
+    import numpy as np
+
+    # --- image to RGBA ---
+    if image.dim() == 3 and image.shape[0] == 1:
+        image = image[0]
+    if image.dim() != 2:
+        raise ValueError("image must be (H,W) or (1,H,W) grayscale")
+
+    H, W = image.shape
+    if H != W:
+        raise ValueError("Image must be square.")
+    side_size = H
+
+    img_np = (image.detach().to("cpu").numpy() * 255).astype(np.uint8)
+    crop_img = Image.fromarray(img_np, mode="L").convert("RGBA")
+    draw = ImageDraw.Draw(crop_img, "RGBA")
+
+    # --- boxes from pred ---
+    device = pred.device
+    N, _, A, _ = pred.shape
+    i_idx, j_idx, a_idx = torch.meshgrid(
+        torch.arange(N, device=device),
+        torch.arange(N, device=device),
+        torch.arange(A, device=device),
+        indexing="ij"
+    )
+
+    # objectness
+    obj = pred[..., 4]
+    keep = obj >= obj_thresh
+    if not keep.any():
+        os.makedirs(out_dir, exist_ok=True)
+        crop_img.save(os.path.join(out_dir, name))
+        return crop_img
+
+    tx = pred[..., 0][keep]
+    ty = pred[..., 1][keep]
+    tw = pred[..., 2][keep]
+    th = pred[..., 3][keep]
+    ii = i_idx[keep]
+    jj = j_idx[keep]
+    aa = a_idx[keep]
+
+    # centers relative to crop
+    cx_rel = (jj + tx) / N
+    cy_rel = (ii + ty) / N
+
+    anchors = torch.tensor(config.ANCHORS, dtype=torch.float32, device=device)  # (A,2)
+    scale_factor = float(config.S) / float(config.N)  # e.g. 120/40=3
+    w_rel = torch.exp(tw) * anchors[aa, 0] * scale_factor
+    h_rel = torch.exp(th) * anchors[aa, 1] * scale_factor
+
+    # to pixels
+    cx = cx_rel * side_size
+    cy = cy_rel * side_size
+    w  = w_rel * side_size
+    h  = h_rel * side_size
+
+    x0 = (cx - w/2).tolist()
+    y0 = (cy - h/2).tolist()
+    x1 = (cx + w/2).tolist()
+    y1 = (cy + h/2).tolist()
+
+    for a,b,c,d in zip(x0,y0,x1,y1):
+        draw.rectangle([a,b,c,d], outline=colour, width=1)
+
+    #os.makedirs(out_dir, exist_ok=True)
+    #crop_img.save(os.path.join(out_dir, name))
     return crop_img

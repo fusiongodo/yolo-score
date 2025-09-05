@@ -284,7 +284,7 @@ class ModelSeries:
         dir_path = os.path.join(self.series_dir, "checkpoints")
         checkpoint_id = int(max([int(f.split(".")[0]) for f in os.listdir(dir_path)]))
         filename =  f"{checkpoint_id}.pth"
-        print(f"lateset checkpoint: {filename}")
+        print(f"latest checkpoint: {filename}")
         return util.loadModel(filename, model, dir = dir_path) 
 
     
