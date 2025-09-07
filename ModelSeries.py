@@ -55,6 +55,7 @@ class EvalRecord:
 
         return stats
     
+    #prec_per_cls and rec_per_cls are torch tensors
     def addEvalRecord(self, prec_per_cls, rec_per_cls, epoch):
         ids = list(range(len(prec_per_cls)))
         occ_map = dict(zip(self.class_stats["class_id"], self.class_stats["n_occurences"]))
@@ -246,8 +247,8 @@ class ModelSeries:
             if mode == "training":
                 try:
                     self.model = self.loadLatestCheckpoint(self.model)
-                except Exception:
-                    print("Modelseries: loadLastCheckpoint Error")
+                except Exception as e:
+                    print(f"Modelseries init(): loadLastCheckpoint Error → {e}")
         
 
 
@@ -282,7 +283,13 @@ class ModelSeries:
     def loadLatestCheckpoint(self, model):
         
         dir_path = os.path.join(self.series_dir, "checkpoints")
-        checkpoint_id = int(max([int(f.split(".")[0]) for f in os.listdir(dir_path)]))
+        files = [
+            int(f.split(".")[0]) for f in os.listdir(dir_path)
+            if os.path.isfile(os.path.join(dir_path, f)) and f.split(".")[0].isdigit()
+        ]
+        print(f"loadLatestCheckpoint available files: {files}")
+        checkpoint_id = int(max(files))
+        print(f"loadLatestCheckpoint picked file: {checkpoint_id}")
         filename =  f"{checkpoint_id}.pth"
         print(f"latest checkpoint: {filename}")
         return util.loadModel(filename, model, dir = dir_path) 

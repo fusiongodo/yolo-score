@@ -406,6 +406,6 @@ def render_demo(image, pred, obj_thresh=0.5,
     for a,b,c,d in zip(x0,y0,x1,y1):
         draw.rectangle([a,b,c,d], outline=colour, width=1)
 
-    #os.makedirs(out_dir, exist_ok=True)
-    #crop_img.save(os.path.join(out_dir, name))
+    os.makedirs(out_dir, exist_ok=True)
+    crop_img.save(os.path.join(out_dir, name))
     return crop_img

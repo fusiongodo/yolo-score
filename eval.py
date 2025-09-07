@@ -1,5 +1,7 @@
 import torch
 import config 
+import os, json
+import matplotlib.pyplot as plt
 
 # ANCHORS = c.ANCHORS
 # N = c.N
@@ -190,6 +192,57 @@ def debug_pred_to_iou(obj_thresh = 0.5):
         print("bt:", bt[cx,cy,a])
         print("m:",  m[cx,cy])
 
+
+
+
+def classReport(gt_df):
+    n_imgs = len(gt_df["img_id"].unique())
+    #crude statistics
+    print(f"number of images: {n_imgs}")
+    print(f"number of annotations: {len(gt_df)}")
+    print(f"avg number of annotations per image: {len(gt_df) / n_imgs}")
+    print(f"number of classes: {len(gt_df["class_id"].unique())}")
+
+    n_imgs = gt_df["img_id"].nunique()
+
+    # counts per class (rename column!)
+    counts = (
+        gt_df.groupby("class_id")["img_id"]
+            .nunique()
+            .reset_index(name="n_images")
+    )
+
+    # base table
+    classes = (
+        gt_df["class_id"].value_counts()
+        .reset_index(name="count")
+        .rename(columns={"index": "class_id"})
+    )
+
+    # add names from JSON
+    filepath = os.path.join(os.getcwd(), "ds2_dense", "ds2_dense", "class_names.json")
+    with open(filepath, "r") as file:
+        class_names = json.load(file)
+    class_names = {int(k): str(v) for k, v in class_names.items()}
+
+    classes["name"] = classes["class_id"].map(class_names)
+
+
+    # merge once, then compute %
+    classes = classes.merge(counts, on="class_id", how="inner")
+    classes["%_images"] = classes["n_images"] * 100 / n_imgs
+    classes.head()
+
+    n_images = classes["n_images"].tolist()
+    counts   = classes["count"].tolist() 
+    plt.figure(figsize = (15, 4))
+    plt.scatter(n_images, counts, s = 5)
+
+    plt.xlabel("n_images")
+    plt.ylabel("count")
+    plt.title("Count vs. n_images")
+    plt.show()
+    return classes
 
 
 
