@@ -333,11 +333,90 @@ def render_prediction(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 
 
 
 
+# def render_demo(image, pred, obj_thresh=0.5,
+#                       colour=(0, 255, 0, 200),
+#                       out_dir="evaluation_crops_from_dataset",
+#                       name="crop.png"):
+#     # image: (H,W) or (1,H,W) tensor in [0,1]; pred: (N,N,A,5+C) on any device
+#     import os, torch
+#     from PIL import Image, ImageDraw
+#     import numpy as np
+
+#     # --- image to RGBA ---
+#     if image.dim() == 3 and image.shape[0] == 1:
+#         image = image[0]
+#     if image.dim() != 2:
+#         raise ValueError("image must be (H,W) or (1,H,W) grayscale")
+
+#     H, W = image.shape
+#     if H != W:
+#         raise ValueError("Image must be square.")
+#     side_size = H
+
+#     img_np = (image.detach().to("cpu").numpy() * 255).astype(np.uint8)
+#     crop_img = Image.fromarray(img_np, mode="L").convert("RGBA")
+#     draw = ImageDraw.Draw(crop_img, "RGBA")
+
+#     # --- boxes from pred ---
+#     device = pred.device
+#     N, _, A, _ = pred.shape
+#     i_idx, j_idx, a_idx = torch.meshgrid(
+#         torch.arange(N, device=device),
+#         torch.arange(N, device=device),
+#         torch.arange(A, device=device),
+#         indexing="ij"
+#     )
+
+#     # objectness
+#     obj = pred[..., 4]
+#     keep = obj >= obj_thresh
+#     if not keep.any():
+#         os.makedirs(out_dir, exist_ok=True)
+#         crop_img.save(os.path.join(out_dir, name))
+#         return crop_img
+
+#     tx = pred[..., 0][keep]
+#     ty = pred[..., 1][keep]
+#     tw = pred[..., 2][keep]
+#     th = pred[..., 3][keep]
+#     ii = i_idx[keep]
+#     jj = j_idx[keep]
+#     aa = a_idx[keep]
+
+#     # centers relative to crop
+#     cx_rel = (jj + tx) / N
+#     cy_rel = (ii + ty) / N
+
+#     anchors = torch.tensor(config.ANCHORS, dtype=torch.float32, device=device)  # (A,2)
+#     scale_factor = float(config.S) / float(config.N)  # e.g. 120/40=3
+#     w_rel = torch.exp(tw) * anchors[aa, 0] * scale_factor
+#     h_rel = torch.exp(th) * anchors[aa, 1] * scale_factor
+
+#     # to pixels
+#     cx = cx_rel * side_size
+#     cy = cy_rel * side_size
+#     w  = w_rel * side_size
+#     h  = h_rel * side_size
+
+#     x0 = (cx - w/2).tolist()
+#     y0 = (cy - h/2).tolist()
+#     x1 = (cx + w/2).tolist()
+#     y1 = (cy + h/2).tolist()
+
+#     for a,b,c,d in zip(x0,y0,x1,y1):
+#         draw.rectangle([a,b,c,d], outline=colour, width=1)
+
+#     os.makedirs(out_dir, exist_ok=True)
+#     crop_img.save(os.path.join(out_dir, name))
+#     return crop_img
+
+
 def render_demo(image, pred, obj_thresh=0.5,
-                      colour=(0, 255, 0, 200),
-                      out_dir="evaluation_crops_from_dataset",
-                      name="crop.png"):
-    # image: (H,W) or (1,H,W) tensor in [0,1]; pred: (N,N,A,5+C) on any device
+                colour=(0, 255, 0, 200),
+                out_dir="evaluation_crops_from_dataset",
+                name="crop.png",
+                class_names=None,          # e.g. ["notehead", "rest", ...]
+                show_score=True):
     import os, torch
     from PIL import Image, ImageDraw
     import numpy as np
@@ -347,7 +426,6 @@ def render_demo(image, pred, obj_thresh=0.5,
         image = image[0]
     if image.dim() != 2:
         raise ValueError("image must be (H,W) or (1,H,W) grayscale")
-
     H, W = image.shape
     if H != W:
         raise ValueError("Image must be square.")
@@ -357,9 +435,10 @@ def render_demo(image, pred, obj_thresh=0.5,
     crop_img = Image.fromarray(img_np, mode="L").convert("RGBA")
     draw = ImageDraw.Draw(crop_img, "RGBA")
 
-    # --- boxes from pred ---
+    # --- indices ---
     device = pred.device
-    N, _, A, _ = pred.shape
+    N, _, A, K = pred.shape  # K = 5 + C
+    C = K - 5
     i_idx, j_idx, a_idx = torch.meshgrid(
         torch.arange(N, device=device),
         torch.arange(N, device=device),
@@ -367,7 +446,7 @@ def render_demo(image, pred, obj_thresh=0.5,
         indexing="ij"
     )
 
-    # objectness
+    # objectness + keep
     obj = pred[..., 4]
     keep = obj >= obj_thresh
     if not keep.any():
@@ -375,36 +454,56 @@ def render_demo(image, pred, obj_thresh=0.5,
         crop_img.save(os.path.join(out_dir, name))
         return crop_img
 
-    tx = pred[..., 0][keep]
-    ty = pred[..., 1][keep]
-    tw = pred[..., 2][keep]
-    th = pred[..., 3][keep]
-    ii = i_idx[keep]
-    jj = j_idx[keep]
-    aa = a_idx[keep]
+    # box params
+    tx = pred[..., 0][keep]; ty = pred[..., 1][keep]
+    tw = pred[..., 2][keep]; th = pred[..., 3][keep]
+    ii = i_idx[keep];        jj = j_idx[keep]; aa = a_idx[keep]
+    # class ids (argmax over one-hot)
+    cls_id = pred[..., 5:].argmax(dim=-1)[keep]  # (M,)
+    score  = obj[keep]                            # (M,)
 
     # centers relative to crop
     cx_rel = (jj + tx) / N
     cy_rel = (ii + ty) / N
 
     anchors = torch.tensor(config.ANCHORS, dtype=torch.float32, device=device)  # (A,2)
-    scale_factor = float(config.S) / float(config.N)  # e.g. 120/40=3
+    scale_factor = float(config.S) / float(config.N)
     w_rel = torch.exp(tw) * anchors[aa, 0] * scale_factor
     h_rel = torch.exp(th) * anchors[aa, 1] * scale_factor
 
     # to pixels
-    cx = cx_rel * side_size
-    cy = cy_rel * side_size
-    w  = w_rel * side_size
-    h  = h_rel * side_size
+    cx = (cx_rel * side_size).tolist()
+    cy = (cy_rel * side_size).tolist()
+    w  = (w_rel  * side_size).tolist()
+    h  = (h_rel  * side_size).tolist()
 
-    x0 = (cx - w/2).tolist()
-    y0 = (cy - h/2).tolist()
-    x1 = (cx + w/2).tolist()
-    y1 = (cy + h/2).tolist()
+    for x_c, y_c, ww, hh, c_id, sc in zip(cx, cy, w, h, cls_id.tolist(), score.tolist()):
+        x0 = x_c - ww/2; y0 = y_c - hh/2
+        x1 = x_c + ww/2; y1 = y_c + hh/2
+        draw.rectangle([x0, y0, x1, y1], outline=colour, width=1)
 
-    for a,b,c,d in zip(x0,y0,x1,y1):
-        draw.rectangle([a,b,c,d], outline=colour, width=1)
+        # --- tiny id label, always readable ---
+        label = str(c_id)
+        fs = max(6, min(9, int(0.10 * min(ww, hh))))  # keep very small
+        try:
+            from PIL import ImageFont
+            font = ImageFont.truetype("DejaVuSans.ttf", fs)
+        except Exception:
+            font = None  # fallback to default
+
+        tx = max(0, min(side_size - 1, int(x0) + 1))
+        ty = max(0, min(side_size - 1, int(y0) + 1))
+
+        # Draw black text with a thin white outline
+        draw.text(
+            (tx, ty), label,
+            fill=(0, 0, 0, 255),
+            font=font,
+            stroke_width=1,
+            stroke_fill=(255, 255, 255, 255)
+        )
+
+
 
     os.makedirs(out_dir, exist_ok=True)
     crop_img.save(os.path.join(out_dir, name))
