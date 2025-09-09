@@ -140,15 +140,6 @@ class YOLOv2Loss(nn.Module):
 
         ious_matched = _bbox_iou(pred_pos, gt_pos)     # (M,)  ← _bbox_iou should return a scalar per pair
 
-        # objectness loss
-                  #[Q, N, N, A]
-        
-        ########################## check to confirm if both are ~0.0. Then the model is matchin IoU = 0 -> objectness = 0
-        ###########################
-        ########################
-        #print("ious_matched mean:", ious_matched.mean().item(),
-        #"p_to mean:", torch.sigmoid(p_to[pos_mask]).mean().item())
-
 
         # ------------------- Loss components ---------------------------
         loss_xy = self.l_xy * (
@@ -172,12 +163,6 @@ class YOLOv2Loss(nn.Module):
             )
         loss_noobj = self.l_noobj * F.binary_cross_entropy_with_logits(p_to[noobj_mask], torch.zeros_like(p_to[noobj_mask]), reduction='sum')
 
-    
-
-        #tp_mask = conf & gt_obj & (pred_c == tgt_c) & (iou >= conf_thr)
-
-        # fn_mask = gt_obj & ~tp_mask
-
         if pos_mask.any():
             tgt_labels = torch.argmax(aligned_target[..., 5:][pos_mask], dim=-1)
             loss_cls = self.l_cls * F.cross_entropy(p_cls[pos_mask], tgt_labels, reduction='sum')
@@ -195,10 +180,3 @@ class YOLOv2Loss(nn.Module):
         }
 
         return total, breakdown
-
-    
-
-
-
-
-
