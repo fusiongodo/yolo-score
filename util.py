@@ -473,76 +473,75 @@ def render_demo(image, pred, obj_thresh=0.5,
     return crop_img
 
 
-
 def plotTraining(start, end, name, total, save, losses, labels, records, epochs):
-   filepath = os.path.join(os.getcwd(), "presentation", "training_plots", f"{name}_{start}_{end}")
-   # guard against out-of-range
-   end = min(end, len(records))
+    filepath = os.path.join(os.getcwd(), "presentation", "training_plots", f"{name}_{start}_{end}")
+    end = min(end, len(records))
 
-   # detect parameter changes
-   lr_change  = records[records["c_lr"].diff()     != 0].index
-   wh_change  = records[records["c_wh"].diff()     != 0].index
-   iou_change = records[records["iou_obj"].diff()  != 0].index
+    # --- detect ANY learn_config changes generically ---
+    param_specs = [
+        ("c_lr",    "lr",    "blue",   0.96),
+        ("c_xy",    "c_xy",  "black",  0.94),
+        ("c_wh",    "c_wh",  "green",  0.92),
+        ("c_obj",   "c_obj", "orange", 0.90),
+        ("c_noobj", "c_no",  "red",    0.88),
+        ("c_cls",   "c_cls", "brown",  0.86),
+        ("iou_obj", "iou",   "purple", 0.84),
+    ]
+    change_idxs = []
+    for col, tag, color, yfac in param_specs:
+        if col in records.columns:
+            idxs = records[records[col].diff().fillna(0) != 0].index
+            idxs = idxs[(idxs >= start) & (idxs < end)]
+            if len(idxs):
+                change_idxs.append((idxs, tag, color, yfac))
 
-   # restrict to visible window
-   lr_change  = lr_change[(lr_change  >= start) & (lr_change  < end)]
-   wh_change  = wh_change[(wh_change  >= start) & (wh_change  < end)]
-   iou_change = iou_change[(iou_change >= start) & (iou_change  < end)]
+    fig, ax1 = plt.subplots(figsize=(18, 5))
 
-   fig, ax1 = plt.subplots(figsize=(15, 5))
+    # left axis: losses
+    for loss, label in zip(losses, labels):
+        if not total:
+            if label not in ["mAP", "mREC", "total"]:
+                ax1.plot(epochs[start:end], loss[start:end], label=label, alpha=0.9, linewidth=1.0, zorder=1)
+        else:
+            if label == "total":
+                ax1.plot(epochs[start:end], loss[start:end], label=label, alpha=0.9, linewidth=1.0, zorder=1, color="brown")
 
-   # left axis: losses
-   # for loss, label in zip(losses, labels):
-   for loss, label in zip(losses, labels):
-      if not total:
-         if label not in ["mAP", "mREC", "total"]:
-            ax1.plot(epochs[start:end], loss[start:end], label=label, alpha=0.9, linewidth=1.0, zorder=1)
-      else:
-         if label == "total":
-            ax1.plot(epochs[start:end], loss[start:end], label=label, alpha=0.9, linewidth=1.0, zorder=1, color="brown")
-         
+    ax1.set_xlabel("Epochs")
+    ax1.set_ylabel("Loss")
+    ax1.grid(True)
 
+    # vertical markers
+    def add_markers(ax, idxs, tag, color, yfac=0.95):
+        ymax = ax.get_ylim()[1]
+        for idx in idxs:
+            ax.axvline(x=idx, color=color, linestyle='--', alpha=0.5)
+            ax.text(idx + 0.5, ymax * yfac, tag, color=color, rotation=90, fontsize=8, va="top")
 
-   ax1.set_xlabel("Epochs")
-   ax1.set_ylabel("Loss")
-   ax1.grid(True)
+    for idxs, tag, color, yfac in change_idxs:
+        add_markers(ax1, idxs, tag, color, yfac)
 
-   # vertical markers
-   def add_markers(ax, idxs, tag, color, yfac=0.95):
-      for idx in idxs:
-         ax.axvline(x=idx, color=color, linestyle='--', alpha=0.5)
-         ax.text(idx + 0.5, ax.get_ylim()[1] * yfac, tag,
-                  color=color, rotation=90, fontsize=8)
+    # right axis: metrics
+    ax2 = ax1.twinx()
+    for loss, label in zip(losses, labels):
+        if label in ["mAP", "mREC"]:
+            ax2.plot(
+                epochs[start:end], loss[start:end],
+                label=label, linewidth=1.2, markersize=3.5,
+                markevery=max(1, (end-start)//15), zorder=3
+            )
 
-   add_markers(ax1, lr_change,  'lr',  'blue',   0.95)
-   add_markers(ax1, iou_change, 'iou', 'purple', 0.95)
-   add_markers(ax1, wh_change,  'wh',  'green',  0.85)
+    ax2.set_ylabel("mAP / mREC")
+    ax2.set_ylim(0, 1.0)
+    ax1.set_ylim(bottom=0)
+    ax2.set_ylim(bottom=0)
 
-   # right axis: metrics
-   ax2 = ax1.twinx()
-   for loss, label in zip(losses, labels):
-      if label in ["mAP", "mREC"]:
-         ax2.plot(
-               epochs[start:end], loss[start:end],
-               label=label, linewidth=1.2, markersize=3.5,
-               markevery=max(1, (end-start)//15), zorder=3
-         )
+    # combined legend
+    lines, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines + lines2, labels1 + labels2, loc="center left", bbox_to_anchor=(1.05, 0.85))
 
-   ax2.set_ylabel("mAP / mREC")
-   ax2.set_ylim(0, 1.0)
-   ax1.set_ylim(bottom=0)
-   ax2.set_ylim(bottom=0)
-   
-
-   # combine legends
-   lines, labels1 = ax1.get_legend_handles_labels()
-   lines2, labels2 = ax2.get_legend_handles_labels()
-   ax1.legend(lines + lines2, labels1 + labels2,
-           loc="center left", bbox_to_anchor=(1.05, 0.85))
-
-   plt.title(f"Loss and Metrics per Epochs {start}–{end}")
-   plt.tight_layout(rect=[0, 0, 0.8, 1])  # keep 90% for plot, 10% for legend
-   if save:
-      plt.savefig(filepath, bbox_inches="tight", pad_inches=0.05)
-   
-   plt.show()
+    plt.title(f"Loss and Metrics per Epochs {start}–{end}")
+    plt.tight_layout(rect=[0, 0, 0.8, 1])
+    if save:
+        plt.savefig(filepath, bbox_inches="tight", pad_inches=0.05)
+    plt.show()
