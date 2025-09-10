@@ -11,7 +11,7 @@ Execute second code cell -> download DeepscoresV2 Dataset
 
 # Dataset Statistics
 dataset_statistics.ipynb   
-Annoation density distribution for various detection grid resolutions, class occurence scatter plot and table.   
+Annotation density distribution for various detection grid resolutions, class occurence scatter plot and table.   
 
 # Demo, Model Size, Recall and Precision, Training Losses
 model_and_training_evaluation.ipynb  
@@ -46,6 +46,10 @@ Contains many helper functions used to load and save model weights, viualize the
 
 # eval.py
 Functionalities related to model evaluation (mAP, mREC, ...)  
+
+# Note
+This repository was initially based on the obb_anns repository by yvan674: https://github.com/yvan674/obb_anns providing helper functions to efficiently process DeepscoresV2 data. 
+I discarded all implementations of obb_anns but you can still see the original repository in the commit history.
 
 
 
