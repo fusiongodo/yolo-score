@@ -10,10 +10,15 @@ Execute first code cell -> pip install gdown (Google Drive Python API)
 Execute second code cell -> download DeepscoresV2 Dataset  
 
 # Dataset Statistics
-dataset_statistics.ipynb  
+dataset_statistics.ipynb   
+Annoation density distribution for various detection grid resolutions, class occurence scatter plot and table.   
 
 # Demo, Model Size, Recall and Precision, Training Losses
 model_and_training_evaluation.ipynb  
+Render an image of your choice: paste image into presentation/demo/images (as .png). Provide the name of the image file(e. g. image.png) as second argument to demo() function.  
+Model Size  
+Precision-Recall Curve  
+Training Losses and mAP/REC per epoch.
 
 # observe_training.ipynb
 Track losses and model performance during training.  
