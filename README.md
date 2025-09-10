@@ -9,6 +9,12 @@ setup.ipynb
 Execute first code cell -> pip install gdown (Google Drive Python API)  
 Execute second code cell -> download DeepscoresV2 Dataset  
 
+# Note
+This repository was initially based on the obb_anns repository by yvan674: https://github.com/yvan674/obb_anns providing helper functions to efficiently
+process DeepscoresV2 data.  
+I discarded all implementations of obb_anns but you can still see the original repository in the commit history.
+
+
 # Dataset Statistics
 dataset_statistics.ipynb   
 Annotation density distribution for various detection grid resolutions, class occurence scatter plot and table.   
@@ -47,10 +53,6 @@ Contains many helper functions used to load and save model weights, viualize the
 # eval.py
 Functionalities related to model evaluation (mAP, mREC, ...)  
 
-# Note
-This repository was initially based on the obb_anns repository by yvan674: https://github.com/yvan674/obb_anns providing helper functions to efficiently
-process DeepscoresV2 data.  
-I discarded all implementations of obb_anns but you can still see the original repository in the commit history.
 
 
 
