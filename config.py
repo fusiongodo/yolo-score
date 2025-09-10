@@ -1,4 +1,3 @@
-# config.py
 import os
 import numpy as np
 
@@ -15,7 +14,6 @@ S = 60
 A = 2
 C = 136
 N = 60
-
 RES = 720
 
 ANCHORS = np.array([

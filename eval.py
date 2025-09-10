@@ -2,10 +2,12 @@ import torch
 import config 
 import os, json
 import matplotlib.pyplot as plt
+import pandas as pd
+from math import isclose
+import dataset
 
 # ANCHORS = c.ANCHORS
 # N = c.N
-img_w, img_h = 1.0, 1.0
 
 
 def decode_fn(t):
@@ -68,23 +70,23 @@ def logit_to_target(tensor):
 
 
 def calc_masks(pred, tgt, iou, conf_thr):
-        pred_conf   = pred[...,4] >= conf_thr
-        tgt_conf = tgt[...,4] > 0.2 # just any value between 0 and 1 will do
-        pred_cls = pred[...,5:].argmax(-1)
-        tgt_cls  = tgt[...,5:].argmax(-1)
+    pred_conf   = pred[...,4] >= conf_thr
+    tgt_conf = tgt[...,4] > 0.2 # just any value between 0 and 1 will do
+    pred_cls = pred[...,5:].argmax(-1)
+    tgt_cls  = tgt[...,5:].argmax(-1)
 
-        tp_mask = pred_conf & tgt_conf & (pred_cls == tgt_cls) & (iou >= conf_thr)
-        fp_mask = pred_conf & (
-            (~tgt_conf) | 
-            (tgt_conf & (pred_cls != tgt_cls)) | 
-            (iou < conf_thr )
-            ) 
-        fn_mask = tgt_conf &(
-            (~pred_conf) |
-            (pred_cls != tgt_cls) |
-            (iou < conf_thr)
-        )
-        return tp_mask, fp_mask, fn_mask, tgt_conf, pred_cls, tgt_cls
+    tp_mask = pred_conf & tgt_conf & (pred_cls == tgt_cls) & (iou >= conf_thr)
+    fp_mask = pred_conf & (
+        (~tgt_conf) | 
+        (tgt_conf & (pred_cls != tgt_cls)) | 
+        (iou < conf_thr )
+        ) 
+    fn_mask = tgt_conf &(
+        (~pred_conf) |
+        (pred_cls != tgt_cls) |
+        (iou < conf_thr)
+    )
+    return tp_mask, fp_mask, fn_mask, tgt_conf, pred_cls, tgt_cls
 
 
 
@@ -159,6 +161,66 @@ def avg_precision_recall(model, eval_dataset, device, n_samples=100, conf_thr=0.
 
 
 
+def classReport(gt_df):
+    
+    n_imgs = len(gt_df["img_id"].unique())
+    #crude statistics
+    print(f"number of images: {n_imgs}")
+    print(f"number of annotations: {len(gt_df)}")
+    print(f"avg number of annotations per image: {len(gt_df) / n_imgs}")
+    print(f"number of classes: {len(gt_df['class_id'].unique())}")
+
+    n_imgs = gt_df["img_id"].nunique()
+
+    # counts per class (rename column!)
+    counts = (
+        gt_df.groupby("class_id")["img_id"]
+            .nunique()
+            .reset_index(name="n_images")
+    )
+
+    # base table
+    classes = (
+        gt_df["class_id"].value_counts()
+        .reset_index(name="count")
+        .rename(columns={"index": "class_id"})
+    )
+
+    # add names from JSON
+    filepath = os.path.join(os.getcwd(), "ds2_dense", "ds2_dense", "class_names.json")
+    with open(filepath, "r") as file:
+        class_names = json.load(file)
+    class_names = {int(k): str(v) for k, v in class_names.items()}
+
+    classes["name"] = classes["class_id"].map(class_names)
+
+
+    # merge once, then compute %
+    classes = classes.merge(counts, on="class_id", how="inner")
+    classes["%_images"] = classes["n_images"] * 100 / n_imgs
+
+    filepath = os.path.join(os.getcwd(), "models", "60@60@2@720", "runpod_oneshot_training2", "runpod_oneshot_training2_eval.json")
+
+    with open(filepath, "r") as file:
+        data = json.load(file)
+    df = pd.DataFrame(data["eval_records"])
+
+    classes = classes.merge(df[df["epoch"] == 100][["class_id", "epoch", "mAP", "mREC"]], on="class_id", how="inner")
+
+    n_images = classes["n_images"].tolist()
+    counts   = classes["count"].tolist() 
+    plt.figure(figsize = (15, 4))
+    plt.scatter(n_images, counts, s = 5)
+
+    plt.xlabel("n_images")
+    plt.ylabel("count")
+    plt.title("Count vs. n_images")
+    plt.show()
+    return classes
+
+
+
+
 
 #######################################################################
 #######################################################################
@@ -193,61 +255,6 @@ def debug_pred_to_iou(obj_thresh = 0.5):
         print("m:",  m[cx,cy])
 
 
-
-
-def classReport(gt_df):
-    n_imgs = len(gt_df["img_id"].unique())
-    #crude statistics
-    print(f"number of images: {n_imgs}")
-    print(f"number of annotations: {len(gt_df)}")
-    print(f"avg number of annotations per image: {len(gt_df) / n_imgs}")
-    print(f"number of classes: {len(gt_df["class_id"].unique())}")
-
-    n_imgs = gt_df["img_id"].nunique()
-
-    # counts per class (rename column!)
-    counts = (
-        gt_df.groupby("class_id")["img_id"]
-            .nunique()
-            .reset_index(name="n_images")
-    )
-
-    # base table
-    classes = (
-        gt_df["class_id"].value_counts()
-        .reset_index(name="count")
-        .rename(columns={"index": "class_id"})
-    )
-
-    # add names from JSON
-    filepath = os.path.join(os.getcwd(), "ds2_dense", "ds2_dense", "class_names.json")
-    with open(filepath, "r") as file:
-        class_names = json.load(file)
-    class_names = {int(k): str(v) for k, v in class_names.items()}
-
-    classes["name"] = classes["class_id"].map(class_names)
-
-
-    # merge once, then compute %
-    classes = classes.merge(counts, on="class_id", how="inner")
-    classes["%_images"] = classes["n_images"] * 100 / n_imgs
-    classes.head()
-
-    n_images = classes["n_images"].tolist()
-    counts   = classes["count"].tolist() 
-    plt.figure(figsize = (15, 4))
-    plt.scatter(n_images, counts, s = 5)
-
-    plt.xlabel("n_images")
-    plt.ylabel("count")
-    plt.title("Count vs. n_images")
-    plt.show()
-    return classes
-
-
-
-import torch, config
-from math import isclose
 
 # ---- helpers -------------------------------------------------
 def assert_shape(x, shape):
@@ -313,8 +320,6 @@ def test_unit_precision_simple(d):
     print("oh, ho, oo =", p_oh, p_ho, p_oo)
     dbg_masks(one, half, iou)
     dbg_masks(half, one, iou)
-
-import dataset
 
 def runTests(gt_df):
     _tiny_iou_test()

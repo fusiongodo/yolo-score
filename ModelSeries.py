@@ -5,9 +5,6 @@ import model as m
 import util
 import json
 import IPython.display as pdis
-from importlib import reload
-reload(util)
-reload(c)
 
 
 

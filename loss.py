@@ -149,12 +149,20 @@ class YOLOv2Loss(nn.Module):
         loss_wh = self.l_wh * (
             F.mse_loss(p_tw[pos_mask], aligned_target[..., 2][pos_mask], reduction='sum') +
             F.mse_loss(p_th[pos_mask], aligned_target[..., 3][pos_mask], reduction='sum'))
+        
+        # applying ious_matched leads to divergent behaviour 
+        # mREC drops to zero
+        # seen training plots below cell 5 in model_and_training_evaluation.ipynb 
+        # around epoch 120-170 and 230-292
         if self.iou_obj:
             loss_obj = self.l_obj * F.mse_loss(
                 torch.sigmoid(p_to[pos_mask]),             # (M,)
                 ious_matched.detach(),                     # (M,)
                 reduction='sum'
             )     
+        # apply objectness loss only to pos_mask 
+        # train model to predict high objectness values for given objects
+        # similar to noobj loss (and therefore almost redundant but not quite)
         else:
             loss_obj = self.l_obj * F.binary_cross_entropy_with_logits(
                 p_to[pos_mask],

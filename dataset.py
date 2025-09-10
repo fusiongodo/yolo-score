@@ -1,34 +1,9 @@
-import os
 import numpy as np
-import torch
 from torch.utils.data import Dataset
 from PIL import Image
 from importlib import reload
-import config
-import util
-import random
-import time
-
-reload(util)
-reload(config)
-
-
-
-
-
-import os
-import numpy as np
-import torch
-from torch.utils.data import Dataset
-from PIL import Image
-from importlib import reload
-import config
-import util
-import random
-
-reload(util)
-reload(config)
-
+import random, time, util, config, os, torch
+from torch.utils.data import DataLoader
 
 
 
@@ -228,7 +203,7 @@ class CroppedPreloadedDataset(Dataset):
 
 
 
-
+#used for mAP and mREC sanity tests
     
 class CroppedDummyset(Dataset):
     """
@@ -337,9 +312,8 @@ class CroppedDummyset(Dataset):
 
 
 
-from torch.utils.data import DataLoader
-import torch
-import config
+
+#used for mAP and mREC sanity tests
 
 class DummyDataLoader(DataLoader):
     def __init__(self, dummyset, choice="zero", **kwargs):

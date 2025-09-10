@@ -1,19 +1,12 @@
-import os
-import torch
+import os, torch, time, eval, util
 import torch.nn as nn
 import torch.nn.functional as F
-import config
-import time
 from importlib import import_module
 from torch.utils.data import DataLoader
 import loss as l
-import eval
-import time
-import util
 from dataset import CroppedDataset, CroppedPreloadedDataset
 from ModelSeries import LossRecord, LearnConfig, Record, ModelSeries
 import config as c
-import util
 
 
 
@@ -26,7 +19,7 @@ class Trainer:
 
     def __init__(self, modelseries, learn_config : LearnConfig, epochs, checkpoint_rate, num_workers, batch_size ):
         
-        # --------------- core ----------------
+
         self.model = modelseries.model.to("cuda")
         self.modelseries : ModelSeries = modelseries
         self.testConfig() #test if moderseries config aligns with config.py
@@ -34,7 +27,7 @@ class Trainer:
         d = learn_config.toDict()
         self.loss_fn = l.YOLOv2Loss(l_xy = d["c_xy"], l_wh=d["c_wh"], l_obj=d["c_obj"], l_noobj=d["c_noobj"], l_cls=d["c_cls"], iou_obj = d["iou_obj"])
 
-        self.learn_config = learn_config #loss paramters and lr
+        self.learn_config = learn_config
         self.checkpoint_rate = checkpoint_rate
         self.batch_size = batch_size
 
@@ -95,7 +88,6 @@ class Trainer:
 
     def visualize(self):
         self.model.eval()
-        #(image, target, colour=(0, 255, 0, 200), obj_thres = 0.5, out_dir="evaluation_crops_from_dataset", name="crop.png"):
         for i in range(20):
             idx = i * 200
             try:

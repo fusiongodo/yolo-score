@@ -1,14 +1,11 @@
-import torch
-import os
-import json
+import torch, os, eval, json, config
 import pandas as pd
+import matplotlib.pyplot as plt 
 from PIL import Image, ImageDraw
 from importlib import reload
-import config
 import torch.nn as nn
 import numpy as np
 from IPython.display import display
-reload(config)
 
 
 
@@ -230,7 +227,7 @@ def load_crop_image(img_path, crop_row, crop_col):
 
 
 
-# used in visualize.ipynb
+# used in trainer2.py
 def render_prediction(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 0.5,
 
                              out_dir="evaluation_crops_from_dataset",
@@ -332,83 +329,49 @@ def render_prediction(image, target, iou, colour=(0, 255, 0, 200), obj_thresh = 
     return crop_img
 
 
+def demo(series, img_name, conf_thr=0.1):
+    series.model.eval().to("cpu")
 
-# def render_demo(image, pred, obj_thresh=0.5,
-#                       colour=(0, 255, 0, 200),
-#                       out_dir="evaluation_crops_from_dataset",
-#                       name="crop.png"):
-#     # image: (H,W) or (1,H,W) tensor in [0,1]; pred: (N,N,A,5+C) on any device
-#     import os, torch
-#     from PIL import Image, ImageDraw
-#     import numpy as np
+    img_path = os.path.join(os.getcwd(), r"presentation\demo\images", img_name)
+    out_dir = os.path.join(os.getcwd(), r"presentation\demo\preds")
+    out_file = os.path.join(out_dir,  img_name)
+    if not os.path.isfile(img_path):
+        print(f"File NOT found: {img_path}")
+        return
+    print(f"Found file: {img_path}  ({os.path.getsize(img_path)} bytes)")
 
-#     # --- image to RGBA ---
-#     if image.dim() == 3 and image.shape[0] == 1:
-#         image = image[0]
-#     if image.dim() != 2:
-#         raise ValueError("image must be (H,W) or (1,H,W) grayscale")
+    try:
+        # unpack tuple from util.load_crop_image
+        crop_img, *_ = load_crop_image(img_path, 0, 0)  # PIL Image
+        # force grayscale, (H,W)
+        arr = np.array(crop_img.convert("L"), dtype=np.float32) / 255.0
+        # -> (1,1,H,W)
+        image = torch.from_numpy(arr).unsqueeze(0).unsqueeze(0).to("cpu")
+        print("image.shape:", tuple(image.shape))
+    except Exception as e:
+        print("error loading the image:", repr(e))
+        return
 
-#     H, W = image.shape
-#     if H != W:
-#         raise ValueError("Image must be square.")
-#     side_size = H
+    with torch.no_grad():
+        pred = series.model(image)         # (1,N,N,A,5+C)
+        pred = pred.squeeze(0)             # (N,N,A,5+C)
+        pred = eval.logit_to_target(pred)  # decode to (tx,ty,tw,th,obj,...)
 
-#     img_np = (image.detach().to("cpu").numpy() * 255).astype(np.uint8)
-#     crop_img = Image.fromarray(img_np, mode="L").convert("RGBA")
-#     draw = ImageDraw.Draw(crop_img, "RGBA")
+    os.makedirs(out_dir, exist_ok=True)
 
-#     # --- boxes from pred ---
-#     device = pred.device
-#     N, _, A, _ = pred.shape
-#     i_idx, j_idx, a_idx = torch.meshgrid(
-#         torch.arange(N, device=device),
-#         torch.arange(N, device=device),
-#         torch.arange(A, device=device),
-#         indexing="ij"
-#     )
 
-#     # objectness
-#     obj = pred[..., 4]
-#     keep = obj >= obj_thresh
-#     if not keep.any():
-#         os.makedirs(out_dir, exist_ok=True)
-#         crop_img.save(os.path.join(out_dir, name))
-#         return crop_img
 
-#     tx = pred[..., 0][keep]
-#     ty = pred[..., 1][keep]
-#     tw = pred[..., 2][keep]
-#     th = pred[..., 3][keep]
-#     ii = i_idx[keep]
-#     jj = j_idx[keep]
-#     aa = a_idx[keep]
-
-#     # centers relative to crop
-#     cx_rel = (jj + tx) / N
-#     cy_rel = (ii + ty) / N
-
-#     anchors = torch.tensor(config.ANCHORS, dtype=torch.float32, device=device)  # (A,2)
-#     scale_factor = float(config.S) / float(config.N)  # e.g. 120/40=3
-#     w_rel = torch.exp(tw) * anchors[aa, 0] * scale_factor
-#     h_rel = torch.exp(th) * anchors[aa, 1] * scale_factor
-
-#     # to pixels
-#     cx = cx_rel * side_size
-#     cy = cy_rel * side_size
-#     w  = w_rel * side_size
-#     h  = h_rel * side_size
-
-#     x0 = (cx - w/2).tolist()
-#     y0 = (cy - h/2).tolist()
-#     x1 = (cx + w/2).tolist()
-#     y1 = (cy + h/2).tolist()
-
-#     for a,b,c,d in zip(x0,y0,x1,y1):
-#         draw.rectangle([a,b,c,d], outline=colour, width=1)
-
-#     os.makedirs(out_dir, exist_ok=True)
-#     crop_img.save(os.path.join(out_dir, name))
-#     return crop_img
+    # render expects (H,W) or (1,H,W); give it (H,W)
+    rendered = render_demo(
+        image=image.squeeze(0).squeeze(0).to("cpu"),
+        pred=pred.to("cpu"),
+        obj_thresh=conf_thr,
+        out_dir=out_dir,
+        name=img_name.replace(".", f"_thr{conf_thr}.")
+    )
+    print(f"Saved visualization → {out_dir}")
+    display(rendered)
+    return rendered
 
 
 def render_demo(image, pred, obj_thresh=0.5,
@@ -508,3 +471,78 @@ def render_demo(image, pred, obj_thresh=0.5,
     os.makedirs(out_dir, exist_ok=True)
     crop_img.save(os.path.join(out_dir, name))
     return crop_img
+
+
+
+def plotTraining(start, end, name, total, save, losses, labels, records, epochs):
+   filepath = os.path.join(os.getcwd(), "presentation", "training_plots", f"{name}_{start}_{end}")
+   # guard against out-of-range
+   end = min(end, len(records))
+
+   # detect parameter changes
+   lr_change  = records[records["c_lr"].diff()     != 0].index
+   wh_change  = records[records["c_wh"].diff()     != 0].index
+   iou_change = records[records["iou_obj"].diff()  != 0].index
+
+   # restrict to visible window
+   lr_change  = lr_change[(lr_change  >= start) & (lr_change  < end)]
+   wh_change  = wh_change[(wh_change  >= start) & (wh_change  < end)]
+   iou_change = iou_change[(iou_change >= start) & (iou_change  < end)]
+
+   fig, ax1 = plt.subplots(figsize=(15, 5))
+
+   # left axis: losses
+   # for loss, label in zip(losses, labels):
+   for loss, label in zip(losses, labels):
+      if not total:
+         if label not in ["mAP", "mREC", "total"]:
+            ax1.plot(epochs[start:end], loss[start:end], label=label, alpha=0.9, linewidth=1.0, zorder=1)
+      else:
+         if label == "total":
+            ax1.plot(epochs[start:end], loss[start:end], label=label, alpha=0.9, linewidth=1.0, zorder=1, color="brown")
+         
+
+
+   ax1.set_xlabel("Epochs")
+   ax1.set_ylabel("Loss")
+   ax1.grid(True)
+
+   # vertical markers
+   def add_markers(ax, idxs, tag, color, yfac=0.95):
+      for idx in idxs:
+         ax.axvline(x=idx, color=color, linestyle='--', alpha=0.5)
+         ax.text(idx + 0.5, ax.get_ylim()[1] * yfac, tag,
+                  color=color, rotation=90, fontsize=8)
+
+   add_markers(ax1, lr_change,  'lr',  'blue',   0.95)
+   add_markers(ax1, iou_change, 'iou', 'purple', 0.95)
+   add_markers(ax1, wh_change,  'wh',  'green',  0.85)
+
+   # right axis: metrics
+   ax2 = ax1.twinx()
+   for loss, label in zip(losses, labels):
+      if label in ["mAP", "mREC"]:
+         ax2.plot(
+               epochs[start:end], loss[start:end],
+               label=label, linewidth=1.2, markersize=3.5,
+               markevery=max(1, (end-start)//15), zorder=3
+         )
+
+   ax2.set_ylabel("mAP / mREC")
+   ax2.set_ylim(0, 1.0)
+   ax1.set_ylim(bottom=0)
+   ax2.set_ylim(bottom=0)
+   
+
+   # combine legends
+   lines, labels1 = ax1.get_legend_handles_labels()
+   lines2, labels2 = ax2.get_legend_handles_labels()
+   ax1.legend(lines + lines2, labels1 + labels2,
+           loc="center left", bbox_to_anchor=(1.05, 0.85))
+
+   plt.title(f"Loss and Metrics per Epochs {start}–{end}")
+   plt.tight_layout(rect=[0, 0, 0.8, 1])  # keep 90% for plot, 10% for legend
+   if save:
+      plt.savefig(filepath, bbox_inches="tight", pad_inches=0.05)
+   
+   plt.show()
