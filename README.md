@@ -7,6 +7,14 @@ This implementation uses a **ResNet-18 backbone** combined with the **pure convo
 - **YOLOv2:** Introduced a fully convolutional backbone and anchor-based improvements.  
   [arXiv:1612.08242](https://arxiv.org/pdf/1612.08242)
 
+<p align="center">
+  <img src="presentation/readme/v1_architecture.png" alt="YOLOv1 Architecture" width="80%">
+</p>
+
+<p align="center">
+  <img src="presentation/readme/v2_encoding.png" alt="YOLOv2 Encoding" width="50%">
+</p>
+
 ---
 
 ## Showcase
