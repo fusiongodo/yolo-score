@@ -1,3 +1,12 @@
+## YOLO Architecture
+
+This implementation uses a **ResNet-18 backbone** combined with the **pure convolutional design** of YOLOv2 and the **detection head structure** of YOLOv1.
+
+- **YOLOv1:** Introduced grid-based bounding box prediction and a unified detection head.  
+  [arXiv:1506.02640](https://arxiv.org/pdf/1506.02640)
+- **YOLOv2:** Introduced a fully convolutional backbone and anchor-based improvements.  
+  [arXiv:1612.08242](https://arxiv.org/pdf/1612.08242)
+
 ## Showcase
 
 <p align="center">
