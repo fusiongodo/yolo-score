@@ -7,79 +7,127 @@ This implementation uses a **ResNet-18 backbone** combined with the **pure convo
 - **YOLOv2:** Introduced a fully convolutional backbone and anchor-based improvements.  
   [arXiv:1612.08242](https://arxiv.org/pdf/1612.08242)
 
+---
+
 ## Showcase
 
 <p align="center">
-  <img src="presentation/demo/images/turca.png" alt="Input Image" width="320" height="450">
+  <img src="presentation/demo/images/turca.png" alt="Input Image" width="320">
   &nbsp;
-  <img src="presentation/demo/preds/turca_thr0.95_resized.jpg" alt="Model Prediction" width="320" height="450">
+  <img src="presentation/demo/preds/turca_thr0.95_resized.jpg" alt="Model Prediction" width="320">
 </p>
 
 <p align="center"><em>Left: input sheet — Right: model prediction</em></p>
 
+---
+
 ## Clone Repository
 
-Clone only the main branch (ca. 550 MB) instead of the whole repository (>2GB due to ultralytics branch).
+Clone only the **main branch** (~550 MB) instead of the entire repository (> 2 GB due to the _ultralytics_ branch):
 
-```
+```bash
 git clone --single-branch --branch main --depth 1 https://gitlab.hs-flensburg.de/alha7503/obb_anns_hausarbeit.git
 ```
 
-# Setup
+---
 
-setup.ipynb
-Execute first code cell -> pip install gdown (Google Drive Python API)  
-Execute second code cell -> download DeepscoresV2 Dataset
+## Setup
 
-# Note
+**File:** `setup.ipynb`
 
-This repository was initially based on the obb_anns repository by yvan674: https://github.com/yvan674/obb_anns providing helper functions to efficiently
-process DeepscoresV2 data.  
-I discarded all implementations of obb_anns but you can still see the original repository in the commit history.
+1. Execute first code cell → `pip install gdown` (Google Drive Python API)
+2. Execute second code cell → download **DeepScoresV2** dataset
 
-# Dataset Statistics
+---
 
-dataset_statistics.ipynb  
-Annotation density distribution for various detection grid resolutions, class occurence scatter plot and table.
+## Note
 
-# Demo, Model Size, Recall and Precision, Training Losses
+This repository was **initially based on** [yvan674/obb_anns](https://github.com/yvan674/obb_anns), which provided helper functions for DeepScoresV2 processing.  
+All original implementations have since been **removed**, though the early reference remains visible in the commit history.
 
-model_and_training_evaluation.ipynb  
-Render an image of your choice: paste image into presentation/demo/images (as .png). Provide the name of the image file(e. g. image.png) as second argument to demo() function.  
-Model Size  
-Precision-Recall Curve  
-Training Losses and mAP/REC per epoch.
+---
 
-# observe_training.ipynb
+## Dataset Statistics
 
-Track losses and model performance during training.
+**File:** `dataset_statistics.ipynb`
 
-# ModelSeries.py
+- Annotation-density distribution for various detection-grid resolutions
+- Class-occurrence scatter plot and summary table
 
-Central class to track training progress associated with a model and its configurations. You can inspect the visualization of all gathered data in model_and_training_evaluation.ipynb. ModelSeries creates model weight checkpoints in regular intervals. LearnConfig is the datastructure used to track changes in loss parameters per epoch. EvalRecord tracks overall and per-class model performance per epoch.
+---
 
-# training.ipynb
+## Demo, Model Size, Recall & Precision, Training Losses
 
-Configure and initiate training of the model. Uses Trainer class from trainer2.py
+**File:** `model_and_training_evaluation.ipynb`
 
-# config.py
+- Render any image: place it in `presentation/demo/images/` (as `.png`)  
+  and call `demo("image.png")`
+- Visualizes:
+  - **Model size**
+  - **Precision–Recall curve**
+  - **Training losses** and **mAP/REC per epoch**
 
-Adjusting eigher N, S or RES requires stride adjustments within model.py  
-Parameter N: Detection head resolution of the model.  
-Parameter S: Grid Resolution applied on the input image. e.g. if N=S we feed the complete image into the model, if S // N = 3 we divide the input image into nine crops that are processed by the model individually.  
-Parameter RES: Input image resolution.  
-Parameter A: Number of anchors.  
-Parameter ANCHORS: Anchor box dimensions.
+---
 
-# loss.py
+## observe_training.ipynb
 
-See lines 153-171 to understand inconcistency regarding mAP (evaluation) and loss function implementation.
+Track **loss evolution** and **model performance** in real time during training.
 
-# util.py
+---
 
-class DataExtractor: Processes ds2_dense\deepscores_train.json data based on config.py settings to obtain formatted dataframe for model training and evaluation.  
-Contains many helper functions used to load and save model weights, viualize the model predictions, etc.
+## ModelSeries.py
 
-# eval.py
+Central class to **track training progress** and configuration of a model.  
+Visualizations appear in `model_and_training_evaluation.ipynb`.
 
-Functionalities related to model evaluation (mAP, mREC, ...)
+- Creates **weight checkpoints** at regular intervals
+- `LearnConfig`: tracks loss parameters per epoch
+- `EvalRecord`: tracks overall and per-class performance per epoch
+
+---
+
+## training.ipynb
+
+Configure and initiate model training.  
+Uses the `Trainer` class from `trainer2.py`.
+
+---
+
+## config.py
+
+Adjusting **N**, **S**, or **RES** requires corresponding stride changes within `model.py`.
+
+| Parameter   | Description                                                                                                                         |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **N**       | Detection-head resolution                                                                                                           |
+| **S**       | Grid resolution on the input image (e.g. if `N = S`, the full image is processed; if `S // N = 3`, the image is split into 9 crops) |
+| **RES**     | Input image resolution                                                                                                              |
+| **A**       | Number of anchors                                                                                                                   |
+| **ANCHORS** | Anchor box dimensions                                                                                                               |
+
+---
+
+## loss.py
+
+See **lines 153–171** for details on the **inconsistency** between _mAP_ (evaluation) and the implemented loss function.
+
+---
+
+## util.py
+
+Contains the class **`DataExtractor`**, which processes  
+`ds2_dense/deepscores_train.json` according to `config.py` to create a formatted DataFrame for training and evaluation.
+
+Also includes helper functions for:
+
+- Loading / saving model weights
+- Visualizing predictions
+- Other utility routines used across notebooks
+
+---
+
+## eval.py
+
+Implements evaluation metrics such as **mAP**, **mREC**, and related analysis utilities.
+
+---
