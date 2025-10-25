@@ -1,10 +1,14 @@
 ## Showcase
 
 <p align="center">
-  <img src="presentation/demo/images/turca.png" alt="Input Image" width="45%">
+  <img src="presentation/demo/images/turca.png" alt="Input Image"
+       style="width:45%; aspect-ratio:1/1.41; object-fit:cover;"/>
   &nbsp;
-  <img src="presentation/demo/preds/turca_thr0.95.png" alt="Model Prediction" width="45%">
+  <img src="presentation/demo/preds/turca_thr0.95.png" alt="Model Prediction"
+       style="width:45%; aspect-ratio:1/1.41; object-fit:cover;"/>
 </p>
+
+<p align="center"><em>Left: input sheet — Right: model prediction</em></p>
 
 ## Clone Repository
 
