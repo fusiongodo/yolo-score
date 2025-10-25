@@ -1,6 +1,7 @@
 ## YOLO Architecture
 
-This implementation uses a **ResNet-18 backbone** combined with the **pure convolutional design** of YOLOv2 and the **detection head structure** of YOLOv1.
+This implementation uses a **ResNet-18 backbone** combined with the **pure convolutional design** of YOLOv2 and the **detection head structure** of YOLOv1.  
+A **custom loss function** is implemented, differing from both YOLOv1 and YOLOv2 formulations.
 
 - **YOLOv1:** Introduced grid-based bounding box prediction and a unified detection head.  
   [arXiv:1506.02640](https://arxiv.org/pdf/1506.02640)
@@ -31,16 +32,6 @@ This implementation uses a **ResNet-18 backbone** combined with the **pure convo
 </p>
 
 <p align="center"><em>Left: input sheet — Right: model prediction</em></p>
-
----
-
-## Clone Repository
-
-Clone only the **main branch** (~550 MB) instead of the entire repository (> 2 GB due to the _ultralytics_ branch):
-
-```bash
-git clone --single-branch --branch main --depth 1 https://gitlab.hs-flensburg.de/alha7503/obb_anns_hausarbeit.git
-```
 
 ---
 
