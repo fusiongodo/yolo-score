@@ -3,7 +3,7 @@
 <p align="center">
   <img src="presentation/demo/images/turca.png" alt="Input Image" width="320" height="450">
   &nbsp;
-  <img src="presentation/demo/preds/turca_thr0.95_resized.png" alt="Model Prediction" width="320" height="450">
+  <img src="presentation/demo/preds/turca_thr0.95_resized.jpg" alt="Model Prediction" width="320" height="450">
 </p>
 
 <p align="center"><em>Left: input sheet — Right: model prediction</em></p>
